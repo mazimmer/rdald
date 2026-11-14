@@ -18,6 +18,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,6 +46,10 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <service
+            android:name=".service.DownloadService"
+            android:exported="false" />
 
         <!-- Media-button receiver: forwards Bluetooth AVRCP / hardware media buttons
              into the PlaybackService (needed on OEMs that don't set a media button session). -->

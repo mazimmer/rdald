@@ -1,7 +1,10 @@
 package com.rdald.app
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,9 +14,11 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.rdald.app.data.SavedTextDb
 import com.rdald.app.databinding.ActivityMainBinding
+import com.rdald.app.service.DownloadService
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -33,13 +38,47 @@ class MainActivity : AppCompatActivity() {
         loadTexts()
     }
 
+    private val refreshReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            loadTexts()
+            val err = intent.getStringExtra(DownloadService.EXTRA_ERROR)
+            Toast.makeText(
+                this@MainActivity,
+                if (err == null) "Text added" else "Download failed: $err",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        ContextCompat.registerReceiver(
+            this, refreshReceiver,
+            IntentFilter(DownloadService.ACTION_TEXTS_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         loadTexts()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            unregisterReceiver(refreshReceiver)
+        } catch (_: Exception) {
+        }
     }
 
     private fun loadTexts() {
         adapter.submitList(SavedTextDb.get(this).getAll())
+    }
+
+    private fun startDownload(url: String) {
+        val i = Intent(this, DownloadService::class.java).apply {
+            action = DownloadService.ACTION_DOWNLOAD
+            putExtra(DownloadService.EXTRA_URL, url)
+        }
+        startService(i)
+        Toast.makeText(this, "Downloading…", Toast.LENGTH_SHORT).show()
     }
 
     private fun requestNotificationPermission() {
@@ -63,14 +102,15 @@ class MainActivity : AppCompatActivity() {
         if (Intent.ACTION_SEND == intent.action && intent.type == "text/plain") {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
             if (sharedText != null && sharedText.isNotBlank()) {
-                val newText = SavedText(
-                    title = "Shared Text",
-                    content = sharedText,
-                    createdAt = System.currentTimeMillis()
-                )
-                SavedTextDb.get(this).insert(newText)
-                loadTexts()
-                Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                if (DownloadService.isUrl(sharedText)) {
+                    startDownload(sharedText.trim())
+                } else {
+                    SavedTextDb.get(this).insert(
+                        SavedText("Shared Text", sharedText, System.currentTimeMillis())
+                    )
+                    loadTexts()
+                    Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -101,14 +141,15 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Add") { _, _ ->
                 val text = input.text.toString().trim()
                 if (text.isNotBlank()) {
-                    val newText = SavedText(
-                        title = "Custom Text",
-                        content = text,
-                        createdAt = System.currentTimeMillis()
-                    )
-                    SavedTextDb.get(this).insert(newText)
-                    loadTexts()
-                    Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                    if (DownloadService.isUrl(text)) {
+                        startDownload(text)
+                    } else {
+                        SavedTextDb.get(this).insert(
+                            SavedText("Custom Text", text, System.currentTimeMillis())
+                        )
+                        loadTexts()
+                        Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(this, "Text cannot be empty", Toast.LENGTH_SHORT).show()
                 }
