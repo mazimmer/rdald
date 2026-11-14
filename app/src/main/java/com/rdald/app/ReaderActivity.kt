@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.widget.SeekBar
 import android.widget.TextView
@@ -224,11 +225,9 @@ class ReaderActivity : AppCompatActivity() {
         val start = paraText.indexOf(sentenceText)
         val sp = SpannableString(paraText)
         if (start >= 0) {
-            sp.setSpan(
-                BackgroundColorSpan(highlightColor),
-                start, start + sentenceText.length,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
+            val end = start + sentenceText.length
+            sp.setSpan(BackgroundColorSpan(Color.BLACK), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sp.setSpan(ForegroundColorSpan(Color.WHITE), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         paraViews[p].setText(sp)
         if (lastHighlightedPara >= 0 && lastHighlightedPara != p && lastHighlightedPara < paraViews.size) {

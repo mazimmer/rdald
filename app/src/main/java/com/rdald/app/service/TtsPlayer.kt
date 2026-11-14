@@ -205,19 +205,23 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
             val remainingSec = currentTotalSeconds * (100 - currentStartPercent) / 100
             val shouldAnnounce = announceTime && remainingSec > 300
-            if (shouldAnnounce) {
-                val mins = (remainingSec + 59) / 60
-                val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
-                else "The item time is $mins minutes."
-                announce(msg) { applyItemVoiceAndSpeak(startIndex) }
-            } else {
-                applyItemVoiceAndSpeak(startIndex)
+            val afterTitle = {
+                if (shouldAnnounce && playWhenReady) {
+                    val mins = (remainingSec + 59) / 60
+                    val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
+                    else "The item time is $mins minutes."
+                    announce(msg) { startSpeaking(startIndex) }
+                } else {
+                    startSpeaking(startIndex)
+                }
             }
+            // Announce the item title first (in the item's own voice), then continue.
+            announce(title, useItemVoice = true) { afterTitle() }
             invalidateState()
         }
     }
 
-    private fun applyItemVoiceAndSpeak(start: Int) {
+    private fun applyItemVoice() {
         val v = itemVoice
         if (v != null) {
             tts?.voice = v
@@ -228,6 +232,10 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
         tts?.setSpeechRate(speechRate)
         tts?.setPitch(speechPitch)
+    }
+
+    private fun startSpeaking(start: Int) {
+        applyItemVoice()
         if (playWhenReady) speakAt(start)
     }
 
@@ -547,17 +555,22 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     /** Speak [text] in an explicit English voice (for app announcements), then run [onDone]. */
-    private fun announce(text: String, onDone: () -> Unit) {
-        if (!ttsReady) {
+    private fun announce(text: String, useItemVoice: Boolean = false, onDone: () -> Unit) {
+        if (text.isBlank() || !ttsReady) {
             onDone()
             return
         }
-        val en = pickVoice("en")
-        if (en != null) tts?.voice = en else tts?.language = Locale.ENGLISH
-        tts?.setSpeechRate(1.0f)
-        tts?.setPitch(1.0f)
-        Log.i(TAG, "announce: $text")
-        val vt = (en?.name ?: "en").replace(Regex("[^A-Za-z0-9]"), "_")
+        if (useItemVoice) {
+            applyItemVoice()
+        } else {
+            val en = pickVoice("en")
+            if (en != null) tts?.voice = en else tts?.language = Locale.ENGLISH
+            tts?.setSpeechRate(1.0f)
+            tts?.setPitch(1.0f)
+            currentVoiceName = "en"
+        }
+        Log.i(TAG, "announce(useItemVoice=$useItemVoice): $text")
+        val vt = currentVoiceName.replace(Regex("[^A-Za-z0-9]"), "_")
         val f = File(context.cacheDir, "ann_" + Math.abs(text.hashCode()) + "_" + vt + ".wav")
         if (f.exists() && f.length() > 0) {
             playAnnouncement(f, onDone)
