@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.rdald.app.data.SavedTextDb
 import com.rdald.app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -27,8 +28,18 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupFab()
         requestNotificationPermission()
+        seedIfEmpty()
         handleIntent(intent)
-        loadSampleData()
+        loadTexts()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadTexts()
+    }
+
+    private fun loadTexts() {
+        adapter.submitList(SavedTextDb.get(this).getAll())
     }
 
     private fun requestNotificationPermission() {
@@ -57,14 +68,9 @@ class MainActivity : AppCompatActivity() {
                     content = sharedText,
                     createdAt = System.currentTimeMillis()
                 )
-                adapter.addItem(newText)
+                SavedTextDb.get(this).insert(newText)
+                loadTexts()
                 Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
-                // Auto-open ReaderActivity to play the text
-                val readerIntent = Intent(this, ReaderActivity::class.java).apply {
-                    putExtra("saved_text", newText)
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                }
-                startActivity(readerIntent)
             }
         }
     }
@@ -100,13 +106,9 @@ class MainActivity : AppCompatActivity() {
                         content = text,
                         createdAt = System.currentTimeMillis()
                     )
-                    adapter.addItem(newText)
+                    SavedTextDb.get(this).insert(newText)
+                    loadTexts()
                     Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
-                    // Auto-open ReaderActivity to play the text
-                    val intent = Intent(this, ReaderActivity::class.java).apply {
-                        putExtra("saved_text", newText)
-                    }
-                    startActivity(intent)
                 } else {
                     Toast.makeText(this, "Text cannot be empty", Toast.LENGTH_SHORT).show()
                 }
@@ -115,7 +117,9 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun loadSampleData() {
+    private fun seedIfEmpty() {
+        val db = SavedTextDb.get(this)
+        if (db.count() > 0) return
         val samples = listOf(
             SavedText(
                 title = "Sample: The Little Prince",
@@ -133,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                 createdAt = System.currentTimeMillis() - 300000
             )
         )
-        adapter.submitList(samples)
+        samples.forEach { db.insert(it) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
