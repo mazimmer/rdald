@@ -13,8 +13,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.rdald.app.data.SavedTextDb
 import com.rdald.app.databinding.ActivityReaderBinding
 import com.rdald.app.service.PlaybackService
+import com.rdald.app.service.TtsPlayer
 
 class ReaderActivity : AppCompatActivity() {
 
@@ -23,11 +25,24 @@ class ReaderActivity : AppCompatActivity() {
 
     private var controller: MediaController? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var displayedId: String? = null
 
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             updateUi()
+            followActiveItem()
         }
+    }
+
+    /** When the service auto-advances to another item, reflect that item in the reader. */
+    private fun followActiveItem() {
+        val active = TtsPlayer.activeItemId ?: return
+        if (active == displayedId) return
+        val st = SavedTextDb.get(this).getById(active) ?: return
+        savedText = st
+        displayedId = active
+        binding.tvContent.text = st.content
+        supportActionBar?.title = st.title
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +96,14 @@ class ReaderActivity : AppCompatActivity() {
             val c = future.get()
             controller = c
             c.addListener(playerListener)
-            loadText(c)
+            val active = TtsPlayer.activeItemId
+            displayedId = savedText?.id
+            if (active != null && active == savedText?.id) {
+                // Same item is already loaded/playing in the service: don't restart or re-pick a voice.
+                updateUi()
+            } else {
+                loadText(c)
+            }
         }, MoreExecutors.directExecutor())
     }
 

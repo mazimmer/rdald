@@ -85,6 +85,22 @@ class SavedTextDb private constructor(context: Context) :
         return list
     }
 
+    fun getById(id: String): SavedText? {
+        readableDatabase.query("saved_texts", null, "id = ?", arrayOf(id), null, null, null).use { c ->
+            if (c.moveToFirst()) {
+                return SavedText(
+                    c.getString(c.getColumnIndexOrThrow("title")),
+                    c.getString(c.getColumnIndexOrThrow("content")),
+                    c.getLong(c.getColumnIndexOrThrow("createdAt")),
+                    c.getString(c.getColumnIndexOrThrow("id")),
+                    c.getInt(c.getColumnIndexOrThrow("archived")) != 0,
+                    c.getInt(c.getColumnIndexOrThrow("progress"))
+                )
+            }
+        }
+        return null
+    }
+
     fun setArchived(ids: Collection<String>, archived: Boolean) {
         if (ids.isEmpty()) return
         val cv = ContentValues().apply { put("archived", if (archived) 1 else 0) }

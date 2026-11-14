@@ -50,6 +50,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     companion object {
         private const val TAG = "TtsPlayer"
         private const val ITEM_DURATION_US = 1_000_000L
+
+        /** The item currently loaded/playing in the (single) player instance, for the UI to follow. */
+        @Volatile
+        var activeItemId: String? = null
+            private set
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -161,6 +166,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             title = newTitle.ifBlank { "RdAld" }
             sentences = text.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
             currentItemId = itemId.ifBlank { null }
+            activeItemId = currentItemId
             currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
             playlist = buildPlaylist()
