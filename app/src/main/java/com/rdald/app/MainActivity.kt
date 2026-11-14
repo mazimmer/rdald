@@ -170,10 +170,18 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
         adapter.setOnItemClickListener { savedText ->
-            val intent = Intent(this, ReaderActivity::class.java).apply {
-                putExtra("saved_text", savedText)
+            if (showArchive) {
+                // Tapping an archived item moves it back to the inbox and resets progress.
+                SavedTextDb.get(this).setArchived(listOf(savedText.id), false)
+                SavedTextDb.get(this).setProgress(savedText.id, 0)
+                loadTexts()
+                Toast.makeText(this, "Moved to inbox", Toast.LENGTH_SHORT).show()
+            } else {
+                val intent = Intent(this, ReaderActivity::class.java).apply {
+                    putExtra("saved_text", savedText)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
     }
 

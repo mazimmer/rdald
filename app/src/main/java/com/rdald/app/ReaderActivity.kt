@@ -2,12 +2,13 @@ package com.rdald.app
 
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -27,6 +28,11 @@ class ReaderActivity : AppCompatActivity() {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var displayedId: String? = null
 
+    private val paraViews = ArrayList<TextView>()
+    private var paraStartSentence: List<Int> = emptyList()
+    private var sentenceParaOf: IntArray = IntArray(0)
+    private var lastScrolledPara = -1
+
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             updateUi()
@@ -34,15 +40,16 @@ class ReaderActivity : AppCompatActivity() {
         }
     }
 
-    /** When the service auto-advances to another item, reflect that item in the reader. */
     private fun followActiveItem() {
         val active = TtsPlayer.activeItemId ?: return
         if (active == displayedId) return
         val st = SavedTextDb.get(this).getById(active) ?: return
         savedText = st
         displayedId = active
-        binding.tvContent.text = st.content
         supportActionBar?.title = st.title
+        renderParagraphs(st.content)
+        lastScrolledPara = -1
+        updateUi()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,7 +65,7 @@ class ReaderActivity : AppCompatActivity() {
         }
 
         setupToolbar()
-        setupTextDisplay()
+        renderParagraphs(savedText!!.content)
         setupControls()
         connectController()
     }
@@ -67,10 +74,6 @@ class ReaderActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = savedText?.title ?: "RdAld"
-    }
-
-    private fun setupTextDisplay() {
-        binding.tvContent.text = savedText?.content
     }
 
     private fun setupControls() {
@@ -88,6 +91,49 @@ class ReaderActivity : AppCompatActivity() {
         })
     }
 
+    /** Render paragraphs as tappable TextViews; tapping one jumps playback to that paragraph. */
+    private fun renderParagraphs(content: String) {
+        binding.paragraphContainer.removeAllViews()
+        paraViews.clear()
+
+        val paras = content.split(Regex("\\n\\s*\\n|\\n")).map { it.trim() }
+            .filter { it.isNotBlank() }.ifEmpty { listOf(content.trim()) }
+
+        val starts = ArrayList<Int>()
+        val sentPara = ArrayList<Int>()
+        var sentCount = 0
+        paras.forEachIndexed { p, para ->
+            starts.add(sentCount)
+            val n = para.split(Regex("(?<=[.!?])\\s+")).count { it.trim().isNotBlank() }
+            repeat(n) { sentPara.add(p) }
+            sentCount += n
+        }
+        paraStartSentence = starts
+        sentenceParaOf = sentPara.toIntArray()
+
+        val padBottom = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 16f, resources.displayMetrics
+        ).toInt()
+        paras.forEachIndexed { p, para ->
+            val tv = TextView(this).apply {
+                text = para
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                setTextColor(Color.BLACK)
+                setLineSpacing(0f, 1.5f)
+                setPadding(0, 0, 0, padBottom)
+                isClickable = true
+                setOnClickListener { seekToParagraph(p) }
+            }
+            paraViews.add(tv)
+            binding.paragraphContainer.addView(tv)
+        }
+    }
+
+    private fun seekToParagraph(p: Int) {
+        val start = paraStartSentence.getOrNull(p) ?: return
+        controller?.seekTo(start, 0L)
+    }
+
     private fun connectController() {
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         val future = MediaController.Builder(this, token).buildAsync()
@@ -99,7 +145,6 @@ class ReaderActivity : AppCompatActivity() {
             val active = TtsPlayer.activeItemId
             displayedId = savedText?.id
             if (active != null && active == savedText?.id) {
-                // Same item is already loaded/playing in the service: don't restart or re-pick a voice.
                 updateUi()
             } else {
                 loadText(c)
@@ -109,9 +154,6 @@ class ReaderActivity : AppCompatActivity() {
 
     private fun loadText(c: MediaController) {
         val st = savedText ?: return
-        // Let the service own the (per-sentence) playlist. Pushing a single MediaItem
-        // here made the session's playlist (1 item) disagree with the player's (N items),
-        // which crashed media3 when another controller (AVRCP/SystemUI) connected.
         val i = Intent(this, PlaybackService::class.java).apply {
             action = PlaybackService.ACTION_LOAD_TEXT
             putExtra(PlaybackService.EXTRA_TEXT, st.content)
@@ -141,6 +183,20 @@ class ReaderActivity : AppCompatActivity() {
         if (count > 0) {
             binding.seekBar.progress = (c.currentMediaItemIndex.coerceAtLeast(0) * 100) / count
         }
+        autoScrollToCurrent(c)
+    }
+
+    /** Keep the currently-read paragraph visible. */
+    private fun autoScrollToCurrent(c: MediaController) {
+        if (sentenceParaOf.isEmpty() || paraViews.isEmpty()) return
+        val idx = c.currentMediaItemIndex
+        if (idx < 0 || idx >= sentenceParaOf.size) return
+        val p = sentenceParaOf[idx]
+        if (p == lastScrolledPara) return
+        if (p < 0 || p >= paraViews.size) return
+        lastScrolledPara = p
+        val v = paraViews[p]
+        binding.scrollView.post { binding.scrollView.smoothScrollTo(0, v.top) }
     }
 
     override fun onSupportNavigateUp(): Boolean {

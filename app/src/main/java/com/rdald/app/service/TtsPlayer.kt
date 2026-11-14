@@ -61,6 +61,10 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private var title: String = "RdAld"
     private var sentences: List<String> = emptyList()
+    // Paragraph structure (for per-paragraph navigation): start sentence index of each
+    // paragraph, and the paragraph index that each sentence belongs to.
+    private var paragraphStarts: List<Int> = emptyList()
+    private var paragraphOf: IntArray = IntArray(0)
     private var playlist: List<MediaItemData> = emptyList()
     private var index: Int = 0
     private var playWhenReady: Boolean = false
@@ -164,17 +168,19 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
             title = newTitle.ifBlank { "RdAld" }
-            sentences = text.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            val parts = buildParagraphs(text)
+            sentences = parts.first
+            paragraphStarts = parts.second
+            paragraphOf = parts.third
             currentItemId = itemId.ifBlank { null }
             activeItemId = currentItemId
             currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
+            currentTotalSeconds = estimateSeconds(wordCount(text))
             playlist = buildPlaylist()
             playbackState = if (sentences.isEmpty()) Player.STATE_IDLE else Player.STATE_READY
             playWhenReady = true
             requestAudioFocus()
-
-            currentTotalSeconds = estimateSeconds(wordCount(text))
             val startIndex = if (currentStartPercent in 1..99 && sentences.isNotEmpty())
                 (currentStartPercent * sentences.size / 100).coerceIn(0, sentences.size - 1) else 0
             index = startIndex
@@ -227,6 +233,50 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private fun estimateSeconds(words: Int): Int {
         val wpm = 180.0 * speechRate.coerceAtLeast(0.5f)
         return Math.max(1, (words / wpm * 60.0).toInt())
+    }
+
+    /** Split into paragraphs -> sentences, keeping paragraph boundaries for navigation. */
+    private fun buildParagraphs(text: String): Triple<List<String>, List<Int>, IntArray> {
+        val paragraphs = text.split(Regex("\\n\\s*\\n|\\n")).map { it.trim() }.filter { it.isNotBlank() }
+        val outSentences = ArrayList<String>()
+        val starts = ArrayList<Int>()
+        val paraOf = ArrayList<Int>()
+        var pIndex = 0
+        for (para in paragraphs) {
+            val sents = para.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            if (sents.isEmpty()) continue
+            starts.add(outSentences.size)
+            for (s in sents) {
+                outSentences.add(s)
+                paraOf.add(pIndex)
+            }
+            pIndex++
+        }
+        if (outSentences.isEmpty() && text.isNotBlank()) {
+            outSentences.add(text.trim())
+            paraOf.add(0)
+            starts.add(0)
+        }
+        return Triple(outSentences, starts, paraOf.toIntArray())
+    }
+
+    private fun paragraphIndexOfSentence(i: Int): Int {
+        if (paragraphOf.isEmpty()) return 0
+        return paragraphOf[i.coerceIn(0, paragraphOf.size - 1)]
+    }
+
+    private fun forwardParagraphTarget(): Int {
+        if (paragraphStarts.isEmpty()) return (index + 1).coerceAtMost((sentences.size - 1).coerceAtLeast(0))
+        val p = paragraphIndexOfSentence(index)
+        val next = p + 1
+        return if (next < paragraphStarts.size) paragraphStarts[next] else (sentences.size - 1).coerceAtLeast(0)
+    }
+
+    private fun backParagraphTarget(): Int {
+        if (paragraphStarts.isEmpty()) return (index - 1).coerceAtLeast(0)
+        val p = paragraphIndexOfSentence(index)
+        val start = paragraphStarts[p]
+        return if (index > start) start else if (p > 0) paragraphStarts[p - 1] else 0
     }
 
     private fun persistProgress() {
@@ -333,9 +383,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             val mi = MediaItem.Builder().setMediaId("s$i").setMediaMetadata(md).build()
             MediaItemData.Builder("s$i")
                 .setMediaItem(mi).setMediaMetadata(md)
-                .setDurationUs(ITEM_DURATION_US).setIsSeekable(true).build()
+                .setDurationUs(totalDurationUs()).setIsSeekable(true).build()
         }
     }
+
+    private fun totalDurationUs(): Long = currentTotalSeconds.coerceAtLeast(1) * 1_000_000L
 
     private fun speakAt(i: Int) {
         if (sentences.isEmpty()) {
@@ -564,9 +616,14 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             .setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setMaxSeekToPreviousPositionMs(Long.MAX_VALUE)
         if (items.isNotEmpty()) {
+            val idx = index.coerceIn(0, items.size - 1)
+            // Report position as a fraction of the whole item so the notification progress
+            // bar reflects item-level progress rather than a single sentence.
+            val totalMs = currentTotalSeconds.coerceAtLeast(1) * 1000L
+            val pos = totalMs * idx / items.size
             builder.setPlaylist(items)
-                .setCurrentMediaItemIndex(index.coerceIn(0, items.size - 1))
-                .setContentPositionMs(0L)
+                .setCurrentMediaItemIndex(idx)
+                .setContentPositionMs(pos)
         }
         return builder.build()
     }
@@ -601,10 +658,10 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         val target = when (seekCommand) {
             Player.COMMAND_SEEK_FORWARD,
             Player.COMMAND_SEEK_TO_NEXT,
-            Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> index + 1
+            Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> forwardParagraphTarget()
             Player.COMMAND_SEEK_BACK,
             Player.COMMAND_SEEK_TO_PREVIOUS,
-            Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> index - 1
+            Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> backParagraphTarget()
             else -> mediaItemIndex
         }.coerceIn(0, sentences.size - 1)
         Log.i(TAG, "handleSeek cmd=$seekCommand mii=$mediaItemIndex index=$index target=$target pwr=$playWhenReady")
