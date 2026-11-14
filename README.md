@@ -12,9 +12,9 @@ headsets**.
 - **Distribution:** F‑Droid. **No Google Play build, no Google Play Services, no Firebase.**
   Uses only platform/system APIs and open‑source libraries.
 - Kotlin, single module (`:app`).
-- Package / applicationId: `com.rdald.app` (app label: **RdAld**).
+- Package / applicationId: `com.rdald.app` (app label: **NaraTTS**).
 
-## Features (current, v0.5.7)
+## Features (current, v0.7.3)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -95,7 +95,12 @@ Key classes (under `app/src/main/java/com/rdald/app/`):
   controls playback via media3 `MediaController`.
 - `SavedTextAdapter` — list rows with favicon (`FaviconLoader`, off-thread + `LruCache`),
   progress/remaining time, long-press multi-select.
-- `SettingsActivity` — speech rate/pitch & forward/rewind intervals (`SeekBarPreference`).
+- `SettingsActivity` — speech rate/pitch & forward/rewind intervals (`SeekBarPreference`); opens
+  the Voices screen.
+- `VoicesActivity` — unified, collapsible, tri-state voice tree aggregating **all installed TTS
+  engines**; per-voice preview; prunes selections for missing engines.
+- `TtsEngines` — discovers installed TTS engines (`TTS_SERVICE`) and resolves the default one.
+- `service/TtsPlayer` (see below) keeps **one `TextToSpeech` per engine** and hops engines per item.
 - `service/PlaybackService` — `MediaLibraryService`; builds a `MediaLibrarySession`; handles
   `ACTION_LOAD_TEXT` and forwarded media keys.
 - `service/TtsPlayer` — custom media3 `Player`: detects language, picks a voice, synthesizes
@@ -208,10 +213,25 @@ cd v2
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+Release build:
+
+```
+cd v2
+./gradlew assembleRelease
+# APK: app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/app-release.apk
+# grant the notification permission after a manual install:
+adb shell pm grant com.rdald.app android.permission.POST_NOTIFICATIONS
+```
+
+The release build is **signed with the debug keystore** (`signingConfig = debug`) so it updates
+in place over an installed debug build — the signature matches, so no uninstall/data loss. For a
+real store/F-Droid release you'd sign with your own key (F-Droid signs on its side anyway).
+
 `local.properties` sets `sdk.dir`. Version is defined in `app/build.gradle.kts`
 (`versionCode` / `versionName`).
 
-## Changelog (0.5.x refinements)
+## Changelog (0.5.x → 0.7.x)
 
 - **0.5.2** — baseline: Bluetooth/AVRCP playback (synth-to-file + in-app MediaPlayer),
   inbox/archive tabs, long-press multi-select, URL download, language-aware voices, rate/pitch.

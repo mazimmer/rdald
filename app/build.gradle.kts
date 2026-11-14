@@ -23,6 +23,9 @@ android {
         }
         release {
             isMinifyEnabled = false
+            // Sign with the debug key so release APKs can update in place over the installed
+            // debug build (same signature) instead of requiring an uninstall that wipes data.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
