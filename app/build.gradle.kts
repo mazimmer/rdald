@@ -12,8 +12,8 @@ android {
         applicationId = "com.rdald.app"
         minSdk = 31
         targetSdk = 34
-        versionCode = 20
-        versionName = "2.0.0-alpha20"
+        versionCode = 22
+        versionName = "2.0.0-alpha22"
     }
 
     buildTypes {

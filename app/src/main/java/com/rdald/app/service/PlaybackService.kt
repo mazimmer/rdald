@@ -19,6 +19,9 @@ class PlaybackService : MediaLibraryService() {
     companion object {
         const val ACTION_MEDIA_KEY = "com.rdald.app.action.MEDIA_KEY"
         const val EXTRA_MEDIA_KEYCODE = "com.rdald.app.extra.MEDIA_KEYCODE"
+        const val ACTION_LOAD_TEXT = "com.rdald.app.action.LOAD_TEXT"
+        const val EXTRA_TEXT = "com.rdald.app.extra.TEXT"
+        const val EXTRA_TITLE = "com.rdald.app.extra.TITLE"
     }
 
     private var mediaSession: MediaLibrarySession? = null
@@ -61,10 +64,18 @@ class PlaybackService : MediaLibraryService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_MEDIA_KEY) {
-            val code = intent.getIntExtra(EXTRA_MEDIA_KEYCODE, -1)
-            if (code != -1) player?.onMediaKey(code)
-            return START_STICKY
+        when (intent?.action) {
+            ACTION_MEDIA_KEY -> {
+                val code = intent.getIntExtra(EXTRA_MEDIA_KEYCODE, -1)
+                if (code != -1) player?.onMediaKey(code)
+                return START_STICKY
+            }
+            ACTION_LOAD_TEXT -> {
+                val text = intent.getStringExtra(EXTRA_TEXT) ?: ""
+                val title = intent.getStringExtra(EXTRA_TITLE) ?: "RdAld"
+                player?.playText(title, text)
+                return START_STICKY
+            }
         }
         return super.onStartCommand(intent, flags, startId)
     }

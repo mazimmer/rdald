@@ -1,6 +1,7 @@
 package com.rdald.app
 
 import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
 import android.widget.SeekBar
 import android.widget.Toast
@@ -86,19 +87,15 @@ class ReaderActivity : AppCompatActivity() {
 
     private fun loadText(c: MediaController) {
         val st = savedText ?: return
-        val extras = Bundle().apply { putString("text", st.content) }
-        val item = MediaItem.Builder()
-            .setMediaId(st.id)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(st.title)
-                    .setExtras(extras)
-                    .build()
-            )
-            .build()
-        c.setMediaItem(item)
-        c.prepare()
-        c.play()
+        // Let the service own the (per-sentence) playlist. Pushing a single MediaItem
+        // here made the session's playlist (1 item) disagree with the player's (N items),
+        // which crashed media3 when another controller (AVRCP/SystemUI) connected.
+        val i = Intent(this, PlaybackService::class.java).apply {
+            action = PlaybackService.ACTION_LOAD_TEXT
+            putExtra(PlaybackService.EXTRA_TEXT, st.content)
+            putExtra(PlaybackService.EXTRA_TITLE, st.title)
+        }
+        startService(i)
     }
 
     private fun togglePlayback() {
