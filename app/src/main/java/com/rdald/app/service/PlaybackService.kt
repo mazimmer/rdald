@@ -133,44 +133,47 @@ class PlaybackService : Service() {
                      MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
             
             setCallback(object : MediaSession.Callback() {
+                // These are invoked directly by the system for AVRCP/Bluetooth and by
+                // MediaControllers (notification). They MUST drive real playback here in
+                // the service -- the listener is only for keeping the UI in sync.
                 override fun onPlay() {
-                    Log.i(TAG, "MediaSession.Callback.onPlay")
-                    if (isPaused) playbackListener?.onToggle()
+                    Log.i(TAG, "MediaSession.Callback.onPlay -> handlePlay()")
+                    handlePlay()
                 }
 
                 override fun onPause() {
-                    Log.i(TAG, "MediaSession.Callback.onPause")
-                    if (!isPaused) playbackListener?.onToggle()
+                    Log.i(TAG, "MediaSession.Callback.onPause -> handlePause()")
+                    handlePause()
                 }
 
                 override fun onFastForward() {
-                    Log.i(TAG, "MediaSession.Callback.onFastForward")
-                    playbackListener?.onFastForward()
+                    Log.i(TAG, "MediaSession.Callback.onFastForward -> handleFastForward()")
+                    handleFastForward()
                 }
 
                 override fun onRewind() {
-                    Log.i(TAG, "MediaSession.Callback.onRewind")
-                    playbackListener?.onRewind()
+                    Log.i(TAG, "MediaSession.Callback.onRewind -> handleRewind()")
+                    handleRewind()
                 }
 
                 override fun onSkipToNext() {
-                    Log.i(TAG, "MediaSession.Callback.onSkipToNext")
-                    playbackListener?.onFastForward()
+                    Log.i(TAG, "MediaSession.Callback.onSkipToNext -> handleFastForward()")
+                    handleFastForward()
                 }
 
                 override fun onSkipToPrevious() {
-                    Log.i(TAG, "MediaSession.Callback.onSkipToPrevious")
-                    playbackListener?.onRewind()
+                    Log.i(TAG, "MediaSession.Callback.onSkipToPrevious -> handleRewind()")
+                    handleRewind()
                 }
 
                 override fun onSeekTo(pos: Long) {
                     Log.i(TAG, "MediaSession.Callback.onSeekTo: $pos")
-                    playbackListener?.onSeekTo(pos.toInt())
+                    if (sentences.isNotEmpty()) playSentenceAt(pos.toInt())
                 }
 
                 override fun onStop() {
-                    Log.i(TAG, "MediaSession.Callback.onStop")
-                    playbackListener?.onStop()
+                    Log.i(TAG, "MediaSession.Callback.onStop -> handleStop()")
+                    handleStop()
                 }
             })
 
@@ -227,12 +230,12 @@ class PlaybackService : Service() {
 
                         override fun onDone(utteranceId: String?) {
                             Log.d(TAG, "TTS onDone: $utteranceId")
-                            playNextSentence()
+                            onUtteranceFinished(utteranceId)
                         }
 
                         override fun onError(utteranceId: String?) {
                             Log.e(TAG, "TTS onError: $utteranceId")
-                            playNextSentence()
+                            onUtteranceFinished(utteranceId)
                         }
                     })
                     Log.i(TAG, "TTS initialized successfully with rate=$speechRate, pitch=$speechPitch")
@@ -491,26 +494,23 @@ class PlaybackService : Service() {
     }
 
     internal fun handlePlay() {
-        if (!isPlaying || isPaused) {
-            requestAudioFocus()
-            isPlaying = true
-            isPaused = false
-            playbackListener?.onPlay()
-            if (sentences.isNotEmpty() && !isTtsInitialized) {
-                // Wait for TTS to initialize
-            } else if (sentences.isNotEmpty()) {
-                playNextSentence()
-            }
-            updatePlaybackState()
-            updateNotification()
-        }
+        if (sentences.isEmpty()) return
+        requestAudioFocus()
+        isPlaying = true
+        isPaused = false
+        playbackListener?.onPlay()
+        // Fresh start if nothing has been played yet, otherwise resume/repeat current sentence.
+        val startIndex = if (currentSentenceIndex < 0) 0 else currentSentenceIndex
+        playSentenceAt(startIndex)
+        updatePlaybackState()
+        updateNotification()
     }
 
     internal fun handlePause() {
         if (isPlaying && !isPaused) {
             isPaused = true
             abandonAudioFocus()
-            pauseTTS()
+            tts?.stop()
             playbackListener?.onPause()
             updatePlaybackState()
             updateNotification()
@@ -518,49 +518,76 @@ class PlaybackService : Service() {
     }
 
     internal fun handleStop() {
-        if (isPlaying || isPaused) {
-            isPlaying = false
-            isPaused = false
-            playbackPosition = 0
-            abandonAudioFocus()
-            stopTTS()
-            sentences.clear()
-            playbackListener?.onStop()
-            updatePlaybackState()
-            updateNotification()
-        }
+        isPlaying = false
+        isPaused = false
+        currentSentenceIndex = -1
+        currentSentence = null
+        playbackPosition = 0
+        abandonAudioFocus()
+        tts?.stop()
+        playbackListener?.onStop()
+        updatePlaybackState()
+        updateNotification()
     }
 
     internal fun handleFastForward() {
-        if (isTtsInitialized && tts?.isSpeaking == true) {
-            tts?.stop()
-            // Skip forward by advancing the index
-            currentSentenceIndex = minOf(currentSentenceIndex + (forwardInterval / 5).coerceAtLeast(1), sentences.size - 1)
-            playNextSentence()
-        } else {
-            playbackPosition += (forwardInterval * 1000L)
-            playbackListener?.onFastForward()
-            updatePlaybackState()
-            updateNotification()
-        }
+        if (sentences.isEmpty()) return
+        if (!isPlaying && !isPaused) return
+        val step = (forwardInterval / 5).coerceAtLeast(1)
+        val target = (currentSentenceIndex + step).coerceIn(0, sentences.size - 1)
+        Log.i(TAG, "handleFastForward: $currentSentenceIndex -> $target")
+        playSentenceAt(target)
+        playbackListener?.onFastForward()
+        updatePlaybackState()
+        updateNotification()
     }
 
     internal fun handleRewind() {
-        if (isTtsInitialized && tts?.isSpeaking == true) {
-            tts?.stop()
-            // Go back by rewinding the index
-            val step = (rewindInterval / 5).coerceAtLeast(1)
-            currentSentenceIndex = maxOf(0, currentSentenceIndex - step)
-            // Play the sentence at the new index
-            if (currentSentenceIndex < sentences.size) {
-                currentSentence = sentences[currentSentenceIndex]
-                playCurrentSentence()
-            }
+        if (sentences.isEmpty()) return
+        if (!isPlaying && !isPaused) return
+        val step = (rewindInterval / 5).coerceAtLeast(1)
+        val target = (currentSentenceIndex - step).coerceIn(0, sentences.size - 1)
+        Log.i(TAG, "handleRewind: $currentSentenceIndex -> $target")
+        playSentenceAt(target)
+        playbackListener?.onRewind()
+        updatePlaybackState()
+        updateNotification()
+    }
+
+    /** Jump to and speak the sentence at [index]. Central primitive for all navigation. */
+    private fun playSentenceAt(index: Int) {
+        if (sentences.isEmpty()) return
+        val i = index.coerceIn(0, sentences.size - 1)
+        currentSentenceIndex = i
+        val sentence = sentences[i]
+        currentSentence = sentence
+        playbackListener?.onProgressUpdate(i, sentences.size)
+
+        applyTtsSettings()
+        val utteranceId = java.util.UUID.randomUUID().toString()
+        ttsUtteranceId = utteranceId
+        val params = android.os.Bundle().apply {
+            putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
+        }
+        updateMetadata()
+        val result = tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        if (result == android.speech.tts.TextToSpeech.SUCCESS) {
+            isPlaying = true
+            isPaused = false
         } else {
-            playbackPosition = maxOf(0L, playbackPosition - (rewindInterval * 1000L))
-            playbackListener?.onRewind()
-            updatePlaybackState()
-            updateNotification()
+            Log.e(TAG, "TTS speak failed for sentence $i")
+            if (i + 1 < sentences.size) playSentenceAt(i + 1) else handleStop()
+        }
+    }
+
+    private fun onUtteranceFinished(utteranceId: String?) {
+        // Ignore stale callbacks from a stopped/replaced utterance.
+        if (utteranceId != ttsUtteranceId) return
+        if (!isPlaying || isPaused) return
+        if (currentSentenceIndex + 1 >= sentences.size) {
+            handleStop()
+        } else {
+            playSentenceAt(currentSentenceIndex + 1)
         }
     }
 
@@ -571,89 +598,15 @@ class PlaybackService : Service() {
         }
     }
 
-    private fun playNextSentence() {
-        if (currentSentenceIndex >= sentences.size) {
-            handleStop()
-            return
-        }
-        val sentence = sentences[currentSentenceIndex]
-        currentSentence = sentence
-        currentSentenceIndex++
-        playbackListener?.onProgressUpdate(currentSentenceIndex, totalSentences.get())
-        
-        val utteranceId = java.util.UUID.randomUUID().toString()
-        ttsUtteranceId = utteranceId
-        
-        val params = android.os.Bundle().apply {
-            putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-        }
-        
-        updateMetadata()
-        updateNotification()
-        
-        applyTtsSettings()
-        val result = tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
-        if (result == android.speech.tts.TextToSpeech.SUCCESS) {
-            isPlaying = true
-            isPaused = false
-            updatePlaybackState()
-            updateNotification()
-        } else {
-            Log.e(TAG, "TTS speak failed")
-            playNextSentence()
-        }
-    }
-
-    private fun playCurrentSentence() {
-        if (currentSentenceIndex >= sentences.size) {
-            handleStop()
-            return
-        }
-        val sentence = sentences[currentSentenceIndex]
-        currentSentence = sentence
-        playbackListener?.onProgressUpdate(currentSentenceIndex + 1, totalSentences.get())
-        
-        val utteranceId = java.util.UUID.randomUUID().toString()
-        ttsUtteranceId = utteranceId
-        
-        val params = android.os.Bundle().apply {
-            putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-        }
-        
-        updateMetadata()
-        updateNotification()
-        
-        applyTtsSettings()
-        val result = tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
-        if (result == android.speech.tts.TextToSpeech.SUCCESS) {
-            isPlaying = true
-            isPaused = false
-            updatePlaybackState()
-            updateNotification()
-        } else {
-            Log.e(TAG, "TTS speak failed")
-            playNextSentence()
-        }
-    }
-
     private fun pauseTTS() {
         tts?.stop()
     }
 
     private fun resumeTTS() {
-        if (currentSentence != null && isPaused) {
-            val sentence = currentSentence!!
-            val utteranceId = java.util.UUID.randomUUID().toString()
-            ttsUtteranceId = utteranceId
-            
-            val params = android.os.Bundle().apply {
-                putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-            }
-            
-            applyTtsSettings()
-            tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+        if (isPaused) {
             isPlaying = true
             isPaused = false
+            playSentenceAt(if (currentSentenceIndex < 0) 0 else currentSentenceIndex)
             updatePlaybackState()
             updateNotification()
         }

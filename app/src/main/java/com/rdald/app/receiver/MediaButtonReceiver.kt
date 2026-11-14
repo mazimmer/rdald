@@ -29,11 +29,14 @@ class MediaButtonReceiver : BroadcastReceiver() {
             Intent.ACTION_MEDIA_BUTTON -> {
                 val event = intent.getParcelableExtra<android.view.KeyEvent>(Intent.EXTRA_KEY_EVENT)
                 if (event != null && event.action == android.view.KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-                    val serviceIntent = Intent(PLAYBACK_SERVICE_INTENT)
-                    serviceIntent.setPackage(context.packageName)
-                    serviceIntent.putExtra(EXTRA_KEYCODE, event.keyCode)
-                    serviceIntent.putExtra(EXTRA_SOURCE, event.source)
-                    serviceIntent.putExtra(EXTRA_HARDWAREBUTTON, event.eventTime > 0 || event.downTime > 0)
+                    // Explicit component on the service intent is REQUIRED -- a bare action +
+                    // package will not resolve to a service and startForegroundService is a no-op.
+                    val serviceIntent = Intent(context, PlaybackService::class.java).apply {
+                        action = PLAYBACK_SERVICE_INTENT
+                        putExtra(EXTRA_KEYCODE, event.keyCode)
+                        putExtra(EXTRA_SOURCE, event.source)
+                        putExtra(EXTRA_HARDWAREBUTTON, event.eventTime > 0 || event.downTime > 0)
+                    }
                     try {
                         androidx.core.content.ContextCompat.startForegroundService(context, serviceIntent)
                     } catch (e: Exception) {
