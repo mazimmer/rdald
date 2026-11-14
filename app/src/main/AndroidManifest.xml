@@ -44,5 +44,15 @@
             </intent-filter>
         </service>
 
+        <!-- Media-button receiver: forwards Bluetooth AVRCP / hardware media buttons
+             into the PlaybackService (needed on OEMs that don't set a media button session). -->
+        <receiver
+            android:name=".receiver.AppMediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
