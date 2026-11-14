@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-mergeDebugResources-44:/layout/activity_main.xml",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-mergeDebugResources-44:/layout/item_saved_text.xml",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/item_saved_text.xml"
+    },
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-mergeDebugResources-44:/layout/activity_settings.xml",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.readaloud.app.v2.app-mergeDebugResources-44:/layout/activity_reader.xml",
+        "source": "com.readaloud.app.v2.app-main-47:/layout/activity_reader.xml"
+    },
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-mergeDebugResources-44:/layout/activity_reader.xml",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_reader.xml"
+    }
+]

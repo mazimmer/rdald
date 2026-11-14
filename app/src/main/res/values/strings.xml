@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ReadAloud v2</string>
+    <string name="notification_channel_name">ReadAloud Player</string>
+    <string name="notification_playing">Reading…</string>
+    <string name="notification_paused">Paused</string>
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_forward">Forward 30s</string>
+    <string name="action_rewind">Rewind 10s</string>
+    <string name="add_text">Add Text</string>
+    <string name="settings">Settings</string>
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+</resources>

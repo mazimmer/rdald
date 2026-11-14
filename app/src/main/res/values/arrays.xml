@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tts_voice_names">
+        <item>Default System Voice</item>
+        <item>Female Voice</item>
+        <item>Male Voice</item>
+    </string-array>
+    <string-array name="tts_voice_values">
+        <item>default</item>
+        <item>female</item>
+        <item>male</item>
+    </string-array>
+</resources>
