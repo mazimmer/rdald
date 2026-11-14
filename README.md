@@ -214,9 +214,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **0.5.8** — tapping a paragraph / seeking / forward-rewind now **aborts a still-playing title
   or announcement** and jumps immediately instead of waiting for it to finish.
 - **0.6.0** — renamed the app to **NaraTTS** (pun on *narrates* + TTS) with a new adaptive
-  launcher icon (a speech bubble that doubles as a page of text; paper background, black glyph,
-  high-contrast for e-ink). The `applicationId`/package stays `com.rdald.app`, so existing
-  libraries and settings are preserved.
+  launcher icon; the `applicationId`/package stays `com.rdald.app`, so existing libraries and
+  settings are preserved.
+- **0.6.1** — redrew the icon to be **abstract rather than chat-like**: a solid text block with
+  three waves radiating to the right (“text read aloud”), paper background/black glyph for e-ink.
 
 ## Known limitations / next steps
 
