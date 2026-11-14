@@ -26,6 +26,18 @@
             app:tabSelectedTextColor="@android:color/white"
             app:tabTextColor="#CCFFFFFF" />
 
+        <TextView
+            android:id="@+id/tvSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="8dp"
+            android:textColor="#EEFFFFFF"
+            android:textSize="13sp" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView

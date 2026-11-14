@@ -120,7 +120,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadTexts() {
-        adapter.submitList(SavedTextDb.get(this).getAll(showArchive))
+        val items = SavedTextDb.get(this).getAll(showArchive)
+        adapter.submitList(items)
+        updateSummary(items)
+    }
+
+    /** Show item count + total estimated listening time for the current tab. */
+    private fun updateSummary(items: List<SavedText>) {
+        if (items.isEmpty()) {
+            binding.tvSummary.text = if (showArchive) "Archive is empty" else "No items"
+            return
+        }
+        val rate = getSharedPreferences("settings", MODE_PRIVATE)
+            .getInt("speech_rate", 100) / 100f
+            .coerceAtLeast(0.5f)
+        var totalSec = 0L
+        var remainSec = 0L
+        for (item in items) {
+            val words = item.content.trim().split(Regex("\\s+")).count { it.isNotEmpty() }
+            val itemSec = (words / (180.0 * rate) * 60.0).toLong()
+            totalSec += itemSec
+            remainSec += itemSec * (100 - item.progress.coerceIn(0, 100)) / 100
+        }
+        fun fmt(sec: Long): String {
+            val min = kotlin.math.ceil(sec / 60.0).toInt().coerceAtLeast(1)
+            return if (min >= 60) {
+                val h = min / 60
+                val m = min % 60
+                if (m > 0) "$h h $m min" else "$h h"
+            } else {
+                "$min min"
+            }
+        }
+        val noun = if (items.size == 1) "item" else "items"
+        binding.tvSummary.text =
+            "${items.size} $noun · ~${fmt(totalSec)} total · ~${fmt(remainSec)} remaining"
     }
 
     private fun startDownload(url: String) {
