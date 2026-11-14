@@ -4,6 +4,9 @@ import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.BackgroundColorSpan
 import android.util.TypedValue
 import android.widget.SeekBar
 import android.widget.TextView
@@ -29,9 +32,14 @@ class ReaderActivity : AppCompatActivity() {
     private var displayedId: String? = null
 
     private val paraViews = ArrayList<TextView>()
+    private val paraTexts = ArrayList<String>()
+    private val paraSentences = ArrayList<List<String>>()
     private var paraStartSentence: List<Int> = emptyList()
     private var sentenceParaOf: IntArray = IntArray(0)
     private var lastScrolledPara = -1
+    private var lastHighlightedPara = -1
+    private var lastHighlightedSentence = -1
+    private val highlightColor = 0xFFFFF59D.toInt()
 
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -95,6 +103,11 @@ class ReaderActivity : AppCompatActivity() {
     private fun renderParagraphs(content: String) {
         binding.paragraphContainer.removeAllViews()
         paraViews.clear()
+        paraTexts.clear()
+        paraSentences.clear()
+        lastScrolledPara = -1
+        lastHighlightedPara = -1
+        lastHighlightedSentence = -1
 
         val paras = content.split(Regex("\\n\\s*\\n|\\n")).map { it.trim() }
             .filter { it.isNotBlank() }.ifEmpty { listOf(content.trim()) }
@@ -104,9 +117,11 @@ class ReaderActivity : AppCompatActivity() {
         var sentCount = 0
         paras.forEachIndexed { p, para ->
             starts.add(sentCount)
-            val n = para.split(Regex("(?<=[.!?])\\s+")).count { it.trim().isNotBlank() }
-            repeat(n) { sentPara.add(p) }
-            sentCount += n
+            val sents = para.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            paraSentences.add(sents)
+            paraTexts.add(para)
+            repeat(sents.size) { sentPara.add(p) }
+            sentCount += sents.size
         }
         paraStartSentence = starts
         sentenceParaOf = sentPara.toIntArray()
@@ -180,23 +195,47 @@ class ReaderActivity : AppCompatActivity() {
         binding.btnPlayPause.contentDescription =
             if (c.isPlaying) getString(R.string.action_pause) else getString(R.string.action_play)
         val count = c.mediaItemCount
+        val idx = c.currentMediaItemIndex
         if (count > 0) {
-            binding.seekBar.progress = (c.currentMediaItemIndex.coerceAtLeast(0) * 100) / count
+            binding.seekBar.progress = (idx.coerceAtLeast(0) * 100) / count
         }
-        autoScrollToCurrent(c)
+        if (idx in 0 until sentenceParaOf.size) {
+            highlightSentence(idx)
+            val p = sentenceParaOf[idx]
+            if (p != lastScrolledPara && p in paraViews.indices) {
+                lastScrolledPara = p
+                val v = paraViews[p]
+                binding.scrollView.post { binding.scrollView.smoothScrollTo(0, v.top) }
+            }
+        }
     }
 
-    /** Keep the currently-read paragraph visible. */
-    private fun autoScrollToCurrent(c: MediaController) {
-        if (sentenceParaOf.isEmpty() || paraViews.isEmpty()) return
-        val idx = c.currentMediaItemIndex
+    /** Highlight the sentence currently being spoken. */
+    private fun highlightSentence(idx: Int) {
+        if (idx == lastHighlightedSentence) return
         if (idx < 0 || idx >= sentenceParaOf.size) return
         val p = sentenceParaOf[idx]
-        if (p == lastScrolledPara) return
         if (p < 0 || p >= paraViews.size) return
-        lastScrolledPara = p
-        val v = paraViews[p]
-        binding.scrollView.post { binding.scrollView.smoothScrollTo(0, v.top) }
+        val local = idx - paraStartSentence.getOrElse(p) { 0 }
+        val sents = paraSentences.getOrNull(p) ?: return
+        if (local < 0 || local >= sents.size) return
+        val paraText = paraTexts.getOrNull(p) ?: return
+        val sentenceText = sents[local]
+        val start = paraText.indexOf(sentenceText)
+        val sp = SpannableString(paraText)
+        if (start >= 0) {
+            sp.setSpan(
+                BackgroundColorSpan(highlightColor),
+                start, start + sentenceText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+        paraViews[p].setText(sp)
+        if (lastHighlightedPara >= 0 && lastHighlightedPara != p && lastHighlightedPara < paraViews.size) {
+            paraViews[lastHighlightedPara].setText(paraTexts[lastHighlightedPara])
+        }
+        lastHighlightedPara = p
+        lastHighlightedSentence = idx
     }
 
     override fun onSupportNavigateUp(): Boolean {

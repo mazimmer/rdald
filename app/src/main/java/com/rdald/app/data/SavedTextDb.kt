@@ -61,6 +61,12 @@ class SavedTextDb private constructor(context: Context) :
         writableDatabase.update("saved_texts", cv, "id = ?", arrayOf(id))
     }
 
+    /** Move an item to the bottom of the queue by giving it a fresh createdAt timestamp. */
+    fun moveToBottom(id: String) {
+        val cv = ContentValues().apply { put("createdAt", System.currentTimeMillis()) }
+        writableDatabase.update("saved_texts", cv, "id = ?", arrayOf(id))
+    }
+
     fun getAll(archived: Boolean): List<SavedText> {
         val list = ArrayList<SavedText>()
         readableDatabase.query(

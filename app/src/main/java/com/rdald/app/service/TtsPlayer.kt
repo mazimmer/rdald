@@ -18,6 +18,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.rdald.app.SavedText
 import com.rdald.app.data.SavedTextDb
 import java.io.File
 import java.util.Locale
@@ -100,6 +101,9 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var announceSynthId: String? = null
     private var announceFile: File? = null
     private var announceDone: (() -> Unit)? = null
+
+    private var pendingNextItem: SavedText? = null
+    private var nextStartRunnable: Runnable? = null
 
     private val audioManager: AudioManager? =
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -515,10 +519,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             null
         }
         if (next != null) {
+            pendingNextItem = next
             announce("Continuing with the next item.") {
-                mainHandler.postDelayed({
-                    playText(next.title, next.content, next.id, 0, announceTime = false)
-                }, 3000)
+                if (playWhenReady) {
+                    val r = Runnable { startPendingNext() }
+                    nextStartRunnable = r
+                    mainHandler.postDelayed(r, 3000)
+                }
             }
             playbackState = Player.STATE_READY
         } else {
@@ -530,6 +537,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             playbackState = Player.STATE_READY
         }
         invalidateState()
+    }
+
+    private fun startPendingNext() {
+        val n = pendingNextItem ?: return
+        pendingNextItem = null
+        nextStartRunnable = null
+        playText(n.title, n.content, n.id, 0, announceTime = false)
     }
 
     /** Speak [text] in an explicit English voice (for app announcements), then run [onDone]. */
@@ -633,6 +647,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         this.playWhenReady = playWhenReady
         if (playWhenReady) {
             requestAudioFocus()
+            // Resume a "continue with the next item" that was paused during the announcement.
+            if (pendingNextItem != null) {
+                startPendingNext()
+                invalidateState()
+                return Futures.immediateVoidFuture()
+            }
             val mp = mediaPlayer
             if (mp != null && preparedIndex == index && !mp.isPlaying) {
                 mp.start()
@@ -641,6 +661,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 speakAt(index)
             }
         } else {
+            nextStartRunnable?.let { mainHandler.removeCallbacks(it) }
+            nextStartRunnable = null
+            try {
+                if (announcePlayer?.isPlaying == true) announcePlayer?.pause()
+            } catch (_: Exception) {
+            }
             mediaPlayer?.pause()
             abandonAudioFocus()
             invalidateState()
@@ -672,6 +698,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     override fun handleStop(): ListenableFuture<*> {
         playWhenReady = false
+        nextStartRunnable?.let { mainHandler.removeCallbacks(it) }
+        nextStartRunnable = null
+        pendingNextItem = null
+        try {
+            announcePlayer?.pause()
+        } catch (_: Exception) {
+        }
         mediaPlayer?.pause()
         index = 0
         abandonAudioFocus()
@@ -680,6 +713,9 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     override fun handleRelease(): ListenableFuture<*> {
+        nextStartRunnable?.let { mainHandler.removeCallbacks(it) }
+        nextStartRunnable = null
+        pendingNextItem = null
         mediaPlayer?.release()
         mediaPlayer = null
         announcePlayer?.release()

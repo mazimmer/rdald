@@ -171,11 +171,19 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = adapter
         adapter.setOnItemClickListener { savedText ->
             if (showArchive) {
-                // Tapping an archived item moves it back to the inbox and resets progress.
-                SavedTextDb.get(this).setArchived(listOf(savedText.id), false)
-                SavedTextDb.get(this).setProgress(savedText.id, 0)
+                // Move back to the inbox (bottom of queue). Reset to 0% only if fully read;
+                // otherwise keep the archived percentage. Then open & play like the inbox.
+                val db = SavedTextDb.get(this)
+                db.setArchived(listOf(savedText.id), false)
+                val newProgress = if (savedText.progress >= 100) 0 else savedText.progress
+                db.setProgress(savedText.id, newProgress)
+                db.moveToBottom(savedText.id)
                 loadTexts()
-                Toast.makeText(this, "Moved to inbox", Toast.LENGTH_SHORT).show()
+                val updated = db.getById(savedText.id) ?: savedText
+                val intent = Intent(this, ReaderActivity::class.java).apply {
+                    putExtra("saved_text", updated)
+                }
+                startActivity(intent)
             } else {
                 val intent = Intent(this, ReaderActivity::class.java).apply {
                     putExtra("saved_text", savedText)
