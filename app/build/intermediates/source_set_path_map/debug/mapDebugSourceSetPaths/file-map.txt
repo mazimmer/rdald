@@ -1,48 +1,48 @@
-com.readaloud.app.v2.app-jetified-media3-ui-1.3.1-0 /Users/marco/.gradle/caches/transforms-3/070eacab05c3577502fcacb477198ca0/transformed/jetified-media3-ui-1.3.1/res
-com.readaloud.app.v2.app-material-1.11.0-1 /Users/marco/.gradle/caches/transforms-3/09c93babe2c7c64f58d56d0d311125a5/transformed/material-1.11.0/res
-com.readaloud.app.v2.app-jetified-activity-ktx-1.8.0-2 /Users/marco/.gradle/caches/transforms-3/0c0d67b82fd43afa45d44c8892765d88/transformed/jetified-activity-ktx-1.8.0/res
-com.readaloud.app.v2.app-lifecycle-livedata-core-2.7.0-3 /Users/marco/.gradle/caches/transforms-3/0ee8fe83db59f1becc57f3ef038bcdee/transformed/lifecycle-livedata-core-2.7.0/res
-com.readaloud.app.v2.app-recyclerview-1.3.2-4 /Users/marco/.gradle/caches/transforms-3/181a5cf731ae6747efd0f63fcd922807/transformed/recyclerview-1.3.2/res
-com.readaloud.app.v2.app-jetified-savedstate-ktx-1.2.1-5 /Users/marco/.gradle/caches/transforms-3/1851e89733f0d69ab4bd4b47e7f325ed/transformed/jetified-savedstate-ktx-1.2.1/res
-com.readaloud.app.v2.app-transition-1.4.1-6 /Users/marco/.gradle/caches/transforms-3/1c5b4230392eae4b354d5c289f2551ea/transformed/transition-1.4.1/res
-com.readaloud.app.v2.app-coordinatorlayout-1.1.0-7 /Users/marco/.gradle/caches/transforms-3/1e2623c85f7bef36850c8ff910086a6f/transformed/coordinatorlayout-1.1.0/res
-com.readaloud.app.v2.app-jetified-emoji2-1.2.0-8 /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/res
-com.readaloud.app.v2.app-jetified-appcompat-resources-1.6.1-9 /Users/marco/.gradle/caches/transforms-3/3b6d304456d724093f9824701e9db536/transformed/jetified-appcompat-resources-1.6.1/res
-com.readaloud.app.v2.app-preference-1.2.1-10 /Users/marco/.gradle/caches/transforms-3/517dae6b85283f25636852a1bc518682/transformed/preference-1.2.1/res
-com.readaloud.app.v2.app-appcompat-1.6.1-11 /Users/marco/.gradle/caches/transforms-3/5276265ca4f4f698fca5323ceb023b11/transformed/appcompat-1.6.1/res
-com.readaloud.app.v2.app-constraintlayout-2.1.4-12 /Users/marco/.gradle/caches/transforms-3/62d025c5dd11e7805913e65ff43eb2ea/transformed/constraintlayout-2.1.4/res
-com.readaloud.app.v2.app-jetified-lifecycle-runtime-ktx-2.7.0-13 /Users/marco/.gradle/caches/transforms-3/65b81e60b8b666c9fb6098d447765c3c/transformed/jetified-lifecycle-runtime-ktx-2.7.0/res
-com.readaloud.app.v2.app-lifecycle-livedata-2.7.0-14 /Users/marco/.gradle/caches/transforms-3/74761b41322298da7d1a0d106eb7297d/transformed/lifecycle-livedata-2.7.0/res
-com.readaloud.app.v2.app-jetified-savedstate-1.2.1-15 /Users/marco/.gradle/caches/transforms-3/796ee8305cc357aac2716bb86e0ce0b1/transformed/jetified-savedstate-1.2.1/res
-com.readaloud.app.v2.app-jetified-viewpager2-1.1.0-beta02-16 /Users/marco/.gradle/caches/transforms-3/7a6548d028edd1ab6d0d345650ceab7b/transformed/jetified-viewpager2-1.1.0-beta02/res
-com.readaloud.app.v2.app-cardview-1.0.0-17 /Users/marco/.gradle/caches/transforms-3/7b5b647ed12abf47c6f8c2e09b52eeb5/transformed/cardview-1.0.0/res
-com.readaloud.app.v2.app-slidingpanelayout-1.2.0-18 /Users/marco/.gradle/caches/transforms-3/8de1dbbf3b7b569ace907f25429563bc/transformed/slidingpanelayout-1.2.0/res
-com.readaloud.app.v2.app-lifecycle-runtime-2.7.0-19 /Users/marco/.gradle/caches/transforms-3/8f838fadf093c712928c678a73c56f1b/transformed/lifecycle-runtime-2.7.0/res
-com.readaloud.app.v2.app-jetified-annotation-experimental-1.3.1-20 /Users/marco/.gradle/caches/transforms-3/9ba8e84e9baf417015078d7775159573/transformed/jetified-annotation-experimental-1.3.1/res
-com.readaloud.app.v2.app-core-1.12.0-21 /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/res
-com.readaloud.app.v2.app-jetified-lifecycle-livedata-core-ktx-2.7.0-22 /Users/marco/.gradle/caches/transforms-3/9e9320706066e9cb7d19ab644b795666/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/res
-com.readaloud.app.v2.app-jetified-customview-poolingcontainer-1.0.0-23 /Users/marco/.gradle/caches/transforms-3/a37348affd2e4d98362d6bd66b35d07a/transformed/jetified-customview-poolingcontainer-1.0.0/res
-com.readaloud.app.v2.app-jetified-emoji2-views-helper-1.2.0-24 /Users/marco/.gradle/caches/transforms-3/a6ca214ef0997fa6dae2df210fb31e2a/transformed/jetified-emoji2-views-helper-1.2.0/res
-com.readaloud.app.v2.app-jetified-window-1.0.0-25 /Users/marco/.gradle/caches/transforms-3/a74f35c7dfa582d803003eb2c5a84ac4/transformed/jetified-window-1.0.0/res
-com.readaloud.app.v2.app-jetified-preference-ktx-1.2.1-26 /Users/marco/.gradle/caches/transforms-3/a99f879fbf25786f3f9b5054e1eb53f4/transformed/jetified-preference-ktx-1.2.1/res
-com.readaloud.app.v2.app-lifecycle-viewmodel-2.7.0-27 /Users/marco/.gradle/caches/transforms-3/aa7c9712a0f425efe44697fa94e64457/transformed/lifecycle-viewmodel-2.7.0/res
-com.readaloud.app.v2.app-jetified-lifecycle-livedata-ktx-2.7.0-28 /Users/marco/.gradle/caches/transforms-3/ac0a59f01024816c721c3f727de9bac3/transformed/jetified-lifecycle-livedata-ktx-2.7.0/res
-com.readaloud.app.v2.app-jetified-media3-session-1.3.1-29 /Users/marco/.gradle/caches/transforms-3/b2f89f7c4fa7a99891a97c5ab7fac4a9/transformed/jetified-media3-session-1.3.1/res
-com.readaloud.app.v2.app-jetified-profileinstaller-1.3.0-30 /Users/marco/.gradle/caches/transforms-3/b88f5e9b4768239f2d1d33651d1ff271/transformed/jetified-profileinstaller-1.3.0/res
-com.readaloud.app.v2.app-drawerlayout-1.1.1-31 /Users/marco/.gradle/caches/transforms-3/b8e981acafbef66c3bca4c90372d3014/transformed/drawerlayout-1.1.1/res
-com.readaloud.app.v2.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-32 /Users/marco/.gradle/caches/transforms-3/c8da95913ca10996d13aca76a42525c4/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/res
-com.readaloud.app.v2.app-jetified-startup-runtime-1.1.1-33 /Users/marco/.gradle/caches/transforms-3/d3511616d30b19a2fd745c0871797f45/transformed/jetified-startup-runtime-1.1.1/res
-com.readaloud.app.v2.app-core-runtime-2.2.0-34 /Users/marco/.gradle/caches/transforms-3/d57b07a25272d3cebd4846e040c11494/transformed/core-runtime-2.2.0/res
-com.readaloud.app.v2.app-fragment-1.3.6-35 /Users/marco/.gradle/caches/transforms-3/d663a83901b4f80978d920bee53452c3/transformed/fragment-1.3.6/res
-com.readaloud.app.v2.app-media-1.7.0-36 /Users/marco/.gradle/caches/transforms-3/d76b4886e5b55aef0c0f7bf58be6c349/transformed/media-1.7.0/res
-com.readaloud.app.v2.app-jetified-lifecycle-viewmodel-ktx-2.7.0-37 /Users/marco/.gradle/caches/transforms-3/d7725e60ceae3d45ea8c4da1b54af65e/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/res
-com.readaloud.app.v2.app-jetified-activity-1.8.0-38 /Users/marco/.gradle/caches/transforms-3/da8949f0ec2b304d934dce750203f0cd/transformed/jetified-activity-1.8.0/res
-com.readaloud.app.v2.app-jetified-core-ktx-1.12.0-39 /Users/marco/.gradle/caches/transforms-3/eb83694648aa816a9cc9b027b108563d/transformed/jetified-core-ktx-1.12.0/res
-com.readaloud.app.v2.app-jetified-lifecycle-process-2.7.0-40 /Users/marco/.gradle/caches/transforms-3/ecc0db3711a02bc0eb02c8b030f47d40/transformed/jetified-lifecycle-process-2.7.0/res
-com.readaloud.app.v2.app-pngs-41 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/generated/res/pngs/debug
-com.readaloud.app.v2.app-resValues-42 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/generated/res/resValues/debug
-com.readaloud.app.v2.app-packageDebugResources-43 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.readaloud.app.v2.app-packageDebugResources-44 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.readaloud.app.v2.app-debug-45 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/merged_res/debug/mergeDebugResources
-com.readaloud.app.v2.app-debug-46 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/debug/res
-com.readaloud.app.v2.app-main-47 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/res
+com.rdald.app-jetified-media3-ui-1.3.1-0 /Users/marco/.gradle/caches/transforms-3/070eacab05c3577502fcacb477198ca0/transformed/jetified-media3-ui-1.3.1/res
+com.rdald.app-material-1.11.0-1 /Users/marco/.gradle/caches/transforms-3/09c93babe2c7c64f58d56d0d311125a5/transformed/material-1.11.0/res
+com.rdald.app-jetified-activity-ktx-1.8.0-2 /Users/marco/.gradle/caches/transforms-3/0c0d67b82fd43afa45d44c8892765d88/transformed/jetified-activity-ktx-1.8.0/res
+com.rdald.app-lifecycle-livedata-core-2.7.0-3 /Users/marco/.gradle/caches/transforms-3/0ee8fe83db59f1becc57f3ef038bcdee/transformed/lifecycle-livedata-core-2.7.0/res
+com.rdald.app-recyclerview-1.3.2-4 /Users/marco/.gradle/caches/transforms-3/181a5cf731ae6747efd0f63fcd922807/transformed/recyclerview-1.3.2/res
+com.rdald.app-jetified-savedstate-ktx-1.2.1-5 /Users/marco/.gradle/caches/transforms-3/1851e89733f0d69ab4bd4b47e7f325ed/transformed/jetified-savedstate-ktx-1.2.1/res
+com.rdald.app-transition-1.4.1-6 /Users/marco/.gradle/caches/transforms-3/1c5b4230392eae4b354d5c289f2551ea/transformed/transition-1.4.1/res
+com.rdald.app-coordinatorlayout-1.1.0-7 /Users/marco/.gradle/caches/transforms-3/1e2623c85f7bef36850c8ff910086a6f/transformed/coordinatorlayout-1.1.0/res
+com.rdald.app-jetified-emoji2-1.2.0-8 /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/res
+com.rdald.app-jetified-appcompat-resources-1.6.1-9 /Users/marco/.gradle/caches/transforms-3/3b6d304456d724093f9824701e9db536/transformed/jetified-appcompat-resources-1.6.1/res
+com.rdald.app-preference-1.2.1-10 /Users/marco/.gradle/caches/transforms-3/517dae6b85283f25636852a1bc518682/transformed/preference-1.2.1/res
+com.rdald.app-appcompat-1.6.1-11 /Users/marco/.gradle/caches/transforms-3/5276265ca4f4f698fca5323ceb023b11/transformed/appcompat-1.6.1/res
+com.rdald.app-constraintlayout-2.1.4-12 /Users/marco/.gradle/caches/transforms-3/62d025c5dd11e7805913e65ff43eb2ea/transformed/constraintlayout-2.1.4/res
+com.rdald.app-jetified-lifecycle-runtime-ktx-2.7.0-13 /Users/marco/.gradle/caches/transforms-3/65b81e60b8b666c9fb6098d447765c3c/transformed/jetified-lifecycle-runtime-ktx-2.7.0/res
+com.rdald.app-lifecycle-livedata-2.7.0-14 /Users/marco/.gradle/caches/transforms-3/74761b41322298da7d1a0d106eb7297d/transformed/lifecycle-livedata-2.7.0/res
+com.rdald.app-jetified-savedstate-1.2.1-15 /Users/marco/.gradle/caches/transforms-3/796ee8305cc357aac2716bb86e0ce0b1/transformed/jetified-savedstate-1.2.1/res
+com.rdald.app-jetified-viewpager2-1.1.0-beta02-16 /Users/marco/.gradle/caches/transforms-3/7a6548d028edd1ab6d0d345650ceab7b/transformed/jetified-viewpager2-1.1.0-beta02/res
+com.rdald.app-cardview-1.0.0-17 /Users/marco/.gradle/caches/transforms-3/7b5b647ed12abf47c6f8c2e09b52eeb5/transformed/cardview-1.0.0/res
+com.rdald.app-slidingpanelayout-1.2.0-18 /Users/marco/.gradle/caches/transforms-3/8de1dbbf3b7b569ace907f25429563bc/transformed/slidingpanelayout-1.2.0/res
+com.rdald.app-lifecycle-runtime-2.7.0-19 /Users/marco/.gradle/caches/transforms-3/8f838fadf093c712928c678a73c56f1b/transformed/lifecycle-runtime-2.7.0/res
+com.rdald.app-jetified-annotation-experimental-1.3.1-20 /Users/marco/.gradle/caches/transforms-3/9ba8e84e9baf417015078d7775159573/transformed/jetified-annotation-experimental-1.3.1/res
+com.rdald.app-core-1.12.0-21 /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/res
+com.rdald.app-jetified-lifecycle-livedata-core-ktx-2.7.0-22 /Users/marco/.gradle/caches/transforms-3/9e9320706066e9cb7d19ab644b795666/transformed/jetified-lifecycle-livedata-core-ktx-2.7.0/res
+com.rdald.app-jetified-customview-poolingcontainer-1.0.0-23 /Users/marco/.gradle/caches/transforms-3/a37348affd2e4d98362d6bd66b35d07a/transformed/jetified-customview-poolingcontainer-1.0.0/res
+com.rdald.app-jetified-emoji2-views-helper-1.2.0-24 /Users/marco/.gradle/caches/transforms-3/a6ca214ef0997fa6dae2df210fb31e2a/transformed/jetified-emoji2-views-helper-1.2.0/res
+com.rdald.app-jetified-window-1.0.0-25 /Users/marco/.gradle/caches/transforms-3/a74f35c7dfa582d803003eb2c5a84ac4/transformed/jetified-window-1.0.0/res
+com.rdald.app-jetified-preference-ktx-1.2.1-26 /Users/marco/.gradle/caches/transforms-3/a99f879fbf25786f3f9b5054e1eb53f4/transformed/jetified-preference-ktx-1.2.1/res
+com.rdald.app-lifecycle-viewmodel-2.7.0-27 /Users/marco/.gradle/caches/transforms-3/aa7c9712a0f425efe44697fa94e64457/transformed/lifecycle-viewmodel-2.7.0/res
+com.rdald.app-jetified-lifecycle-livedata-ktx-2.7.0-28 /Users/marco/.gradle/caches/transforms-3/ac0a59f01024816c721c3f727de9bac3/transformed/jetified-lifecycle-livedata-ktx-2.7.0/res
+com.rdald.app-jetified-media3-session-1.3.1-29 /Users/marco/.gradle/caches/transforms-3/b2f89f7c4fa7a99891a97c5ab7fac4a9/transformed/jetified-media3-session-1.3.1/res
+com.rdald.app-jetified-profileinstaller-1.3.0-30 /Users/marco/.gradle/caches/transforms-3/b88f5e9b4768239f2d1d33651d1ff271/transformed/jetified-profileinstaller-1.3.0/res
+com.rdald.app-drawerlayout-1.1.1-31 /Users/marco/.gradle/caches/transforms-3/b8e981acafbef66c3bca4c90372d3014/transformed/drawerlayout-1.1.1/res
+com.rdald.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-32 /Users/marco/.gradle/caches/transforms-3/c8da95913ca10996d13aca76a42525c4/transformed/jetified-lifecycle-viewmodel-savedstate-2.7.0/res
+com.rdald.app-jetified-startup-runtime-1.1.1-33 /Users/marco/.gradle/caches/transforms-3/d3511616d30b19a2fd745c0871797f45/transformed/jetified-startup-runtime-1.1.1/res
+com.rdald.app-core-runtime-2.2.0-34 /Users/marco/.gradle/caches/transforms-3/d57b07a25272d3cebd4846e040c11494/transformed/core-runtime-2.2.0/res
+com.rdald.app-fragment-1.3.6-35 /Users/marco/.gradle/caches/transforms-3/d663a83901b4f80978d920bee53452c3/transformed/fragment-1.3.6/res
+com.rdald.app-media-1.7.0-36 /Users/marco/.gradle/caches/transforms-3/d76b4886e5b55aef0c0f7bf58be6c349/transformed/media-1.7.0/res
+com.rdald.app-jetified-lifecycle-viewmodel-ktx-2.7.0-37 /Users/marco/.gradle/caches/transforms-3/d7725e60ceae3d45ea8c4da1b54af65e/transformed/jetified-lifecycle-viewmodel-ktx-2.7.0/res
+com.rdald.app-jetified-activity-1.8.0-38 /Users/marco/.gradle/caches/transforms-3/da8949f0ec2b304d934dce750203f0cd/transformed/jetified-activity-1.8.0/res
+com.rdald.app-jetified-core-ktx-1.12.0-39 /Users/marco/.gradle/caches/transforms-3/eb83694648aa816a9cc9b027b108563d/transformed/jetified-core-ktx-1.12.0/res
+com.rdald.app-jetified-lifecycle-process-2.7.0-40 /Users/marco/.gradle/caches/transforms-3/ecc0db3711a02bc0eb02c8b030f47d40/transformed/jetified-lifecycle-process-2.7.0/res
+com.rdald.app-pngs-41 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/generated/res/pngs/debug
+com.rdald.app-resValues-42 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/generated/res/resValues/debug
+com.rdald.app-packageDebugResources-43 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.rdald.app-packageDebugResources-44 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.rdald.app-debug-45 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.rdald.app-debug-46 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/debug/res
+com.rdald.app-main-47 /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/res

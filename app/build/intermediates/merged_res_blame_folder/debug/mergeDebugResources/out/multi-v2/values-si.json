@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.readaloud.app.v2.app-mergeDebugResources-43:/values-si/values-si.xml",
+            "outputFile": "com.rdald.app-mergeDebugResources-43:/values-si/values-si.xml",
             "map": [
                 {
                     "source": "/Users/marco/.gradle/caches/transforms-3/070eacab05c3577502fcacb477198ca0/transformed/jetified-media3-ui-1.3.1/res/values-si/values-si.xml",

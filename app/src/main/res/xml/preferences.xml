@@ -11,14 +11,14 @@
         <SeekBarPreference
             android:key="speech_rate"
             android:title="Speech Rate"
-            android:summary="Adjust the speaking speed"
+            android:summary="Adjust the speaking speed (50-200%)"
             android:min="50"
             android:max="200"
             android:defaultValue="100" />
         <SeekBarPreference
             android:key="speech_pitch"
             android:title="Speech Pitch"
-            android:summary="Adjust the speaking pitch"
+            android:summary="Adjust the speaking pitch (50-200%)"
             android:min="50"
             android:max="200"
             android:defaultValue="100" />
@@ -26,15 +26,15 @@
     <PreferenceCategory android:title="Forward/Rewind">
         <SeekBarPreference
             android:key="forward_interval"
-            android:title="Forward Interval (seconds)"
-            android:summary="How far to jump forward"
+            android:title="Forward Interval"
+            android:summary="Seconds to jump forward (5-60s)"
             android:min="5"
             android:max="60"
             android:defaultValue="30" />
         <SeekBarPreference
             android:key="rewind_interval"
-            android:title="Rewind Interval (seconds)"
-            android:summary="How far to jump backward"
+            android:title="Rewind Interval"
+            android:summary="Seconds to jump backward (5-60s)"
             android:min="5"
             android:max="60"
             android:defaultValue="10" />

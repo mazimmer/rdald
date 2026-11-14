@@ -11,6 +11,9 @@
         <item>male</item>
     </string-array>
     <color name="black">#FF000000</color>
+    <color name="bottom_sheet_background">#FF1E1E1E</color>
+    <color name="button_background">#FF2D2D2D</color>
+    <color name="button_stroke">#FF3D3D3D</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_700">#FF6200EE</color>
     <color name="teal_200">#FF03DAC5</color>
@@ -21,7 +24,7 @@
     <string name="action_play">Play</string>
     <string name="action_rewind">Rewind 10s</string>
     <string name="add_text">Add Text</string>
-    <string name="app_name">ReadAloud v2</string>
+    <string name="app_name">RdAld</string>
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
     <string name="notification_channel_name">ReadAloud Player</string>
     <string name="notification_paused">Paused</string>

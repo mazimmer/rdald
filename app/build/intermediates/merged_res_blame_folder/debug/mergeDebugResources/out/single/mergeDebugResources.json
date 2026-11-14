@@ -1,70 +1,78 @@
 [
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/layout_activity_reader.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_reader.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/mipmap-xxxhdpi/ic_launcher.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/drawable_ic_media_play.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/drawable/ic_media_play.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/layout_activity_reader.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/layout/activity_reader.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/mipmap-xxhdpi_ic_launcher.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/mipmap-xxhdpi/ic_launcher.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/mipmap-xxhdpi_ic_launcher.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/mipmap-xxhdpi/ic_launcher.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/menu_main_menu.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/menu/main_menu.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_btn_round_background.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/btn_round_background.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/drawable_ic_media_fast_forward.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/drawable/ic_media_fast_forward.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/layout_activity_settings.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/layout/activity_settings.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/mipmap-xxxhdpi_ic_launcher.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/mipmap-xxxhdpi/ic_launcher.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/mipmap-mdpi_ic_launcher.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/mipmap-mdpi/ic_launcher.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/layout_activity_main.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_main.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_bottom_sheet_bg.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/bottom_sheet_bg.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/xml_preferences.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/xml/preferences.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/mipmap-xhdpi_ic_launcher.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/mipmap-xhdpi/ic_launcher.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/drawable_ic_media_rewind.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/drawable/ic_media_rewind.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_ic_media_play.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/ic_media_play.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/drawable/ic_launcher_foreground.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/ic_launcher_foreground.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/layout_item_saved_text.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/item_saved_text.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_ic_media_pause.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/ic_media_pause.xml"
     },
     {
-        "merged": "com.readaloud.app.v2.app-debug-45:/layout_activity_reader.xml.flat",
-        "source": "com.readaloud.app.v2.app-main-47:/layout/activity_reader.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/xml_preferences.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/xml/preferences.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/mipmap-xhdpi_ic_launcher.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/mipmap-xhdpi/ic_launcher.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/menu_main_menu.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/menu/main_menu.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/mipmap-hdpi_ic_launcher.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/mipmap-hdpi/ic_launcher.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/layout_activity_main.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/layout/activity_main.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/drawable_ic_media_pause.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/drawable/ic_media_pause.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_ic_media_rewind.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/ic_media_rewind.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/layout_activity_settings.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/layout/activity_settings.xml"
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/mipmap-hdpi_ic_launcher.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/mipmap-hdpi/ic_launcher.xml"
     },
     {
-        "merged": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-debug-45:/mipmap-mdpi_ic_launcher.xml.flat",
-        "source": "/Users/marco/.gradle/daemon/8.5/com.readaloud.app.v2.app-main-47:/mipmap-mdpi/ic_launcher.xml"
+        "merged": "com.rdald.app-debug-45:/layout_activity_reader.xml.flat",
+        "source": "com.rdald.app-main-47:/layout/activity_reader.xml"
+    },
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/layout_item_saved_text.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/layout/item_saved_text.xml"
+    },
+    {
+        "merged": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-debug-45:/drawable_ic_media_fast_forward.xml.flat",
+        "source": "/Users/marco/.gradle/daemon/8.5/com.rdald.app-main-47:/drawable/ic_media_fast_forward.xml"
     }
 ]

@@ -1,6 +1,6 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="com.readaloud.app.v2"
+3    package="com.rdald.app"
 4    android:versionCode="1"
 5    android:versionName="2.0.0-alpha1" >
 6
@@ -26,18 +26,18 @@
 16
 17    <permission
 17-->[androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
-18        android:name="com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+18        android:name="com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 18-->[androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
 19        android:protectionLevel="signature" />
 19-->[androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
 20
-21    <uses-permission android:name="com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+21    <uses-permission android:name="com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 21-->[androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
 21-->[androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
 22
 23    <application
 23-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:10:5-51:19
-24        android:name="com.readaloud.app.v2.ReadAloudApp"
+24        android:name="com.rdald.app.ReadAloudApp"
 24-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:11:9-37
 25        android:allowBackup="true"
 25-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:12:9-35
@@ -55,7 +55,7 @@
 32-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:16:9-47
 33        <activity
 33-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:19:9-31:20
-34            android:name="com.readaloud.app.v2.MainActivity"
+34            android:name="com.rdald.app.MainActivity"
 34-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:20:13-41
 35            android:exported="true" >
 35-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:21:13-36
@@ -86,13 +86,13 @@
 48        </activity>
 49        <activity
 49-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:9-77
-50            android:name="com.readaloud.app.v2.ReaderActivity"
+50            android:name="com.rdald.app.ReaderActivity"
 50-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:19-49
 51            android:exported="false" />
 51-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:50-74
 52        <activity
 52-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:9-79
-53            android:name="com.readaloud.app.v2.SettingsActivity"
+53            android:name="com.rdald.app.SettingsActivity"
 53-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:19-51
 54            android:exported="false" />
 54-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:52-76
@@ -100,7 +100,7 @@
 56        <!-- PlaybackService with media playback foreground type -->
 57        <service
 57-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:37:9-40:61
-58            android:name="com.readaloud.app.v2.service.PlaybackService"
+58            android:name="com.rdald.app.service.PlaybackService"
 58-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:38:13-52
 59            android:exported="false"
 59-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:39:13-37
@@ -110,7 +110,7 @@
 62        <!-- MediaButtonReceiver for Bluetooth/AVRCP headset buttons -->
 63        <receiver
 63-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:43:9-49:20
-64            android:name="com.readaloud.app.v2.receiver.MediaButtonReceiver"
+64            android:name="com.rdald.app.receiver.MediaButtonReceiver"
 64-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:44:13-57
 65            android:exported="true" >
 65-->/Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:45:13-36
@@ -126,7 +126,7 @@
 71-->[androidx.emoji2:emoji2:1.2.0] /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
 72            android:name="androidx.startup.InitializationProvider"
 72-->[androidx.emoji2:emoji2:1.2.0] /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:25:13-67
-73            android:authorities="com.readaloud.app.v2.androidx-startup"
+73            android:authorities="com.rdald.app.androidx-startup"
 73-->[androidx.emoji2:emoji2:1.2.0] /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:26:13-68
 74            android:exported="false" >
 74-->[androidx.emoji2:emoji2:1.2.0] /Users/marco/.gradle/caches/transforms-3/344a201cb5727df582f824e1945ba3cc/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:27:13-37

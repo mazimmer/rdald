@@ -130,7 +130,7 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/marco/.gradle/caches
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:16:9-47
 	android:name
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:11:9-37
-activity#com.readaloud.app.v2.MainActivity
+activity#com.rdald.app.MainActivity
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:19:9-31:20
 	android:exported
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:21:13-36
@@ -160,19 +160,19 @@ data
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:29:17-55
 	android:mimeType
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:29:23-52
-activity#com.readaloud.app.v2.ReaderActivity
+activity#com.rdald.app.ReaderActivity
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:9-77
 	android:exported
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:50-74
 	android:name
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:33:19-49
-activity#com.readaloud.app.v2.SettingsActivity
+activity#com.rdald.app.SettingsActivity
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:9-79
 	android:exported
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:52-76
 	android:name
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:34:19-51
-service#com.readaloud.app.v2.service.PlaybackService
+service#com.rdald.app.service.PlaybackService
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:37:9-40:61
 	android:exported
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:39:13-37
@@ -180,7 +180,7 @@ ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbee
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:40:13-58
 	android:name
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:38:13-52
-receiver#com.readaloud.app.v2.receiver.MediaButtonReceiver
+receiver#com.rdald.app.receiver.MediaButtonReceiver
 ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:43:9-49:20
 	android:exported
 		ADDED from /Users/marco/Library/Application Support/BoxWrap/mount/e3437c1078bbeed1250d88c69e21a6d1/ReadAloud/v2/app/src/main/AndroidManifest.xml:45:13-36
@@ -366,7 +366,7 @@ ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/
 		ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
 	android:name
 		ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
-permission#com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permission#com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
 		ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
@@ -376,7 +376,7 @@ uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
-uses-permission#com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission#com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.12.0] /Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/AndroidManifest.xml:26:22-94

@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.readaloud.app.v2"
+    namespace = "com.rdald.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.readaloud.app.v2"
+        applicationId = "com.rdald.app"
         minSdk = 31
         targetSdk = 34
         versionCode = 1

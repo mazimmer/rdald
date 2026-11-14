@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.readaloud.app.v2.app-mergeDebugResources-43:/values-mk/values-mk.xml",
+            "outputFile": "com.rdald.app-mergeDebugResources-43:/values-mk/values-mk.xml",
             "map": [
                 {
                     "source": "/Users/marco/.gradle/caches/transforms-3/9d3ed125108ddb49e4f700e1dbc98ef3/transformed/core-1.12.0/res/values-mk/values-mk.xml",

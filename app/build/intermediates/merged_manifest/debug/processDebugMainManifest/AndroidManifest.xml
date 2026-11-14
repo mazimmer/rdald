@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.readaloud.app.v2"
+    package="com.rdald.app"
     android:versionCode="1"
     android:versionName="2.0.0-alpha1" >
 
@@ -15,13 +15,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <permission
-        android:name="com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.readaloud.app.v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <uses-permission android:name="com.rdald.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:name="com.readaloud.app.v2.ReadAloudApp"
+        android:name="com.rdald.app.ReadAloudApp"
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
@@ -31,7 +31,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ReadAloud" >
         <activity
-            android:name="com.readaloud.app.v2.MainActivity"
+            android:name="com.rdald.app.MainActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -47,21 +47,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.readaloud.app.v2.ReaderActivity"
+            android:name="com.rdald.app.ReaderActivity"
             android:exported="false" />
         <activity
-            android:name="com.readaloud.app.v2.SettingsActivity"
+            android:name="com.rdald.app.SettingsActivity"
             android:exported="false" />
 
         <!-- PlaybackService with media playback foreground type -->
         <service
-            android:name="com.readaloud.app.v2.service.PlaybackService"
+            android:name="com.rdald.app.service.PlaybackService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
         <!-- MediaButtonReceiver for Bluetooth/AVRCP headset buttons -->
         <receiver
-            android:name="com.readaloud.app.v2.receiver.MediaButtonReceiver"
+            android:name="com.rdald.app.receiver.MediaButtonReceiver"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -70,7 +70,7 @@
 
         <provider
             android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.readaloud.app.v2.androidx-startup"
+            android:authorities="com.rdald.app.androidx-startup"
             android:exported="false" >
             <meta-data
                 android:name="androidx.emoji2.text.EmojiCompatInitializer"

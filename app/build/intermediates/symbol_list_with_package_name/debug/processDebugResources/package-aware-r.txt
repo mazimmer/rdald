@@ -1,4 +1,4 @@
-com.readaloud.app.v2
+com.rdald.app
 anim abc_fade_in
 anim abc_fade_out
 anim abc_grow_fade_in_from_bottom
@@ -1468,14 +1468,17 @@ color background_floating_material_light
 color background_material_dark
 color background_material_light
 color black
+color bottom_sheet_background
 color bright_foreground_disabled_material_dark
 color bright_foreground_disabled_material_light
 color bright_foreground_inverse_material_dark
 color bright_foreground_inverse_material_light
 color bright_foreground_material_dark
 color bright_foreground_material_light
+color button_background
 color button_material_dark
 color button_material_light
+color button_stroke
 color call_notification_answer_color
 color call_notification_decline_color
 color cardview_dark_background
@@ -3139,6 +3142,7 @@ drawable abc_textfield_search_material
 drawable abc_vector_test
 drawable avd_hide_password
 drawable avd_show_password
+drawable bottom_sheet_bg
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3147,6 +3151,7 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable btn_round_background
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off

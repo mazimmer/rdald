@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.readaloud.app.v2.app-mergeDebugResources-43:/values-sw360dp-v13/values-sw360dp-v13.xml",
+            "outputFile": "com.rdald.app-mergeDebugResources-43:/values-sw360dp-v13/values-sw360dp-v13.xml",
             "map": [
                 {
                     "source": "/Users/marco/.gradle/caches/transforms-3/517dae6b85283f25636852a1bc518682/transformed/preference-1.2.1/res/values-sw360dp-v13/values-sw360dp-v13.xml",

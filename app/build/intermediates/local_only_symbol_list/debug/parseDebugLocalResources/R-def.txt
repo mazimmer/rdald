@@ -3,11 +3,16 @@ local
 array tts_voice_names
 array tts_voice_values
 color black
+color bottom_sheet_background
+color button_background
+color button_stroke
 color purple_200
 color purple_700
 color teal_200
 color teal_700
 color white
+drawable bottom_sheet_bg
+drawable btn_round_background
 drawable ic_launcher_foreground
 drawable ic_media_fast_forward
 drawable ic_media_pause

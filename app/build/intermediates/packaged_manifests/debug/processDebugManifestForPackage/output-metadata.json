@@ -4,7 +4,7 @@
     "type": "PACKAGED_MANIFESTS",
     "kind": "Directory"
   },
-  "applicationId": "com.readaloud.app.v2",
+  "applicationId": "com.rdald.app",
   "variantName": "debug",
   "elements": [
     {

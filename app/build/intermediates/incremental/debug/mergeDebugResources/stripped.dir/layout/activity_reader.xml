@@ -39,16 +39,17 @@
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@drawable/bottom_sheet_bg"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_peekHeight="120dp"
+        app:behavior_peekHeight="140dp"
         app:behavior_hideable="false">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@android:color/transparent">
 
             <SeekBar
                 android:id="@+id/seekBar"
@@ -65,10 +66,10 @@
 
                 <ImageButton
                     android:id="@+id/btnRewind"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@drawable/ic_media_rewind"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/btn_round_background"
                     android:contentDescription="@string/action_rewind" />
 
                 <ImageButton
@@ -78,15 +79,15 @@
                     android:layout_marginStart="24dp"
                     android:layout_marginEnd="24dp"
                     android:src="@drawable/ic_media_play"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/btn_round_background"
                     android:contentDescription="@string/action_play" />
 
                 <ImageButton
                     android:id="@+id/btnForward"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@drawable/ic_media_fast_forward"
-                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:background="@drawable/btn_round_background"
                     android:contentDescription="@string/action_forward" />
 
             </LinearLayout>
