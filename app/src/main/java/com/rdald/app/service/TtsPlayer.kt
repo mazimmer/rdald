@@ -101,6 +101,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var announceSynthId: String? = null
     private var announceFile: File? = null
     private var announceDone: (() -> Unit)? = null
+    // Incremented whenever an announcement is aborted; stale start/read callbacks check it.
+    private var announceGen: Int = 0
 
     private var pendingNextItem: SavedText? = null
     private var nextStartRunnable: Runnable? = null
@@ -168,7 +170,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             pendingPlayTitle = null
             pendingPlayText = null
-            // Stop any previous item's audio so only the title/announcement is heard first.
+            // Stop any previous item's audio/announcement so only the new title is heard first.
+            abortAnnouncements()
             try {
                 mediaPlayer?.pause()
             } catch (_: Exception) {
@@ -210,18 +213,21 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
             val remainingSec = currentTotalSeconds * (100 - currentStartPercent) / 100
             val shouldAnnounce = announceTime && remainingSec > 300
+            val myGen = announceGen
             val afterTitle = {
-                if (shouldAnnounce && playWhenReady) {
-                    val mins = (remainingSec + 59) / 60
-                    val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
-                    else "The item time is $mins minutes."
-                    announce(msg) { startSpeaking(startIndex) }
-                } else {
-                    startSpeaking(startIndex)
+                if (myGen == announceGen) {
+                    if (shouldAnnounce && playWhenReady) {
+                        val mins = (remainingSec + 59) / 60
+                        val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
+                        else "The item time is $mins minutes."
+                        announce(msg) { if (myGen == announceGen) startSpeaking(startIndex) }
+                    } else {
+                        startSpeaking(startIndex)
+                    }
                 }
             }
             // Announce the item title first (in the item's own voice), then continue.
-            announce(title, useItemVoice = true) { afterTitle() }
+            announce(title, useItemVoice = true) { if (myGen == announceGen) afterTitle() }
             invalidateState()
         }
     }
@@ -560,6 +566,22 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     /** Speak [text] in an explicit English voice (for app announcements), then run [onDone]. */
+    /**
+     * Abort any in-progress title/time announcement (and any pending callback that would
+     * start reading afterwards). Used when the user seeks, taps a paragraph, or skips so that
+     * playback jumps immediately instead of finishing the announcement first.
+     */
+    private fun abortAnnouncements() {
+        announceGen++
+        announceSynthId = null
+        announceDone = null
+        announceFile = null
+        try {
+            announcePlayer?.reset()
+        } catch (_: Exception) {
+        }
+    }
+
     private fun announce(text: String, useItemVoice: Boolean = false, onDone: () -> Unit) {
         if (text.isBlank() || !ttsReady) {
             onDone()
@@ -699,6 +721,9 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     override fun handleSeek(mediaItemIndex: Int, positionMs: Long, seekCommand: Int): ListenableFuture<*> {
         if (sentences.isEmpty()) return Futures.immediateVoidFuture()
+        // A user seek/tap/jump should abort a still-playing title or time announcement
+        // instead of waiting for it (and its follow-up read) to finish.
+        abortAnnouncements()
         val target = when (seekCommand) {
             Player.COMMAND_SEEK_FORWARD,
             Player.COMMAND_SEEK_TO_NEXT,
