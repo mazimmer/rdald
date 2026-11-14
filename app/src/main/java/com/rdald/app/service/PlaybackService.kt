@@ -247,8 +247,9 @@ class PlaybackService : Service() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         forwardInterval = prefs.getInt("forward_interval", 30)
         rewindInterval = prefs.getInt("rewind_interval", 10)
-        speechRate = prefs.getFloat("speech_rate", 100f) / 100f
-        speechPitch = prefs.getFloat("speech_pitch", 100f) / 100f
+        // SeekBarPreference stores Int percentages (50..200); convert to float rate/pitch.
+        speechRate = prefs.getInt("speech_rate", 100) / 100f
+        speechPitch = prefs.getInt("speech_pitch", 100) / 100f
     }
 
     fun applySettings() {
@@ -563,6 +564,13 @@ class PlaybackService : Service() {
         }
     }
 
+    private fun applyTtsSettings() {
+        if (isTtsInitialized && tts != null) {
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+        }
+    }
+
     private fun playNextSentence() {
         if (currentSentenceIndex >= sentences.size) {
             handleStop()
@@ -583,6 +591,7 @@ class PlaybackService : Service() {
         updateMetadata()
         updateNotification()
         
+        applyTtsSettings()
         val result = tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (result == android.speech.tts.TextToSpeech.SUCCESS) {
             isPlaying = true
@@ -614,6 +623,7 @@ class PlaybackService : Service() {
         updateMetadata()
         updateNotification()
         
+        applyTtsSettings()
         val result = tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         if (result == android.speech.tts.TextToSpeech.SUCCESS) {
             isPlaying = true
@@ -640,6 +650,7 @@ class PlaybackService : Service() {
                 putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
             }
             
+            applyTtsSettings()
             tts?.speak(sentence, android.speech.tts.TextToSpeech.QUEUE_FLUSH, params, utteranceId)
             isPlaying = true
             isPaused = false

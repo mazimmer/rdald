@@ -26,6 +26,9 @@ class SettingsActivity : AppCompatActivity() {
         private var prefs: SharedPreferences? = null
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            // Use the SAME prefs file the PlaybackService reads ("settings").
+            // Must be set BEFORE the preferences are inflated.
+            preferenceManager.sharedPreferencesName = "settings"
             setPreferencesFromResource(R.xml.preferences, rootKey)
             prefs = preferenceManager.sharedPreferences
 
