@@ -79,6 +79,8 @@ class PlaybackService : Service() {
     
     internal var forwardInterval = 30
     internal var rewindInterval = 10
+    internal var speechRate = 1.0f
+    internal var speechPitch = 1.0f
 
     private val binder = LocalBinder()
 
@@ -215,6 +217,9 @@ class PlaybackService : Service() {
                     if (result == android.speech.tts.TextToSpeech.LANG_MISSING_DATA || result == android.speech.tts.TextToSpeech.LANG_NOT_SUPPORTED) {
                         Log.w(TAG, "Language not supported")
                     }
+                    // Apply saved TTS settings
+                    tts?.setSpeechRate(speechRate)
+                    tts?.setPitch(speechPitch)
                     tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                         override fun onStart(utteranceId: String?) {
                             Log.d(TAG, "TTS onStart: $utteranceId")
@@ -230,7 +235,7 @@ class PlaybackService : Service() {
                             playNextSentence()
                         }
                     })
-                    Log.i(TAG, "TTS initialized successfully")
+                    Log.i(TAG, "TTS initialized successfully with rate=$speechRate, pitch=$speechPitch")
                 } else {
                     Log.e(TAG, "TTS initialization failed")
                 }
@@ -242,6 +247,18 @@ class PlaybackService : Service() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         forwardInterval = prefs.getInt("forward_interval", 30)
         rewindInterval = prefs.getInt("rewind_interval", 10)
+        speechRate = prefs.getFloat("speech_rate", 100f) / 100f
+        speechPitch = prefs.getFloat("speech_pitch", 100f) / 100f
+    }
+
+    fun applySettings() {
+        loadSettings()
+        if (isTtsInitialized && tts != null) {
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+            Log.i(TAG, "Applied TTS settings: rate=$speechRate, pitch=$speechPitch")
+        }
+        Log.i(TAG, "Applied settings: forward=${forwardInterval}s, rewind=${rewindInterval}s")
     }
 
     private fun updateMetadata() {
