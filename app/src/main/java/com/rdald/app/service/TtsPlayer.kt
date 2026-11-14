@@ -60,7 +60,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    private var title: String = "RdAld"
+    private var title: String = "NaraTTS"
     private var sentences: List<String> = emptyList()
     // Paragraph structure (for per-paragraph navigation): start sentence index of each
     // paragraph, and the paragraph index that each sentence belongs to.
@@ -130,7 +130,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 }
                 val pt = pendingPlayText
                 if (pt != null) {
-                    val tt = pendingPlayTitle ?: "RdAld"
+                    val tt = pendingPlayTitle ?: "NaraTTS"
                     val pid = pendingPlayItemId ?: ""
                     val ppct = pendingPlayPercent
                     val pann = pendingPlayAnnounce
@@ -179,7 +179,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
-            title = newTitle.ifBlank { "RdAld" }
+            title = newTitle.ifBlank { "NaraTTS" }
             val parts = buildParagraphs(text)
             sentences = parts.first
             paragraphStarts = parts.second

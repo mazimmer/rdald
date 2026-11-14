@@ -27,7 +27,7 @@ class ShareActivity : Activity() {
                             putExtra(DownloadService.EXTRA_URL, sharedText.trim())
                         }
                     )
-                    Toast.makeText(this, "Adding to RdAld…", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Adding to NaraTTS…", Toast.LENGTH_SHORT).show()
                 } else {
                     SavedTextDb.get(this).insert(
                         SavedText("Shared Text", sharedText, System.currentTimeMillis())

@@ -4,10 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Rounded speech bubble (a page that "speaks"). -->
     <path
-        android:fillColor="#FF2E7D32"
-        android:pathData="M54,18 L96,54 L54,90 Z" />
+        android:fillColor="#FF1A1A1A"
+        android:pathData="M38,30 H70 A12,12 0 0 1 82,42 V60 A12,12 0 0 1 70,72 H38 A12,12 0 0 1 26,60 V42 A12,12 0 0 1 38,30 Z" />
+    <!-- Tail. -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M36,36 L72,54 L36,72 Z" />
+        android:fillColor="#FF1A1A1A"
+        android:pathData="M34,70 L26,86 L50,72 Z" />
+    <!-- Text lines (paper colour), echoing read-aloud text. -->
+    <path
+        android:fillColor="#FFF4EFE6"
+        android:pathData="M36,40 H72 V45 H36 Z" />
+    <path
+        android:fillColor="#FFF4EFE6"
+        android:pathData="M36,49 H72 V54 H36 Z" />
+    <path
+        android:fillColor="#FFF4EFE6"
+        android:pathData="M36,58 H62 V63 H36 Z" />
 </vector>

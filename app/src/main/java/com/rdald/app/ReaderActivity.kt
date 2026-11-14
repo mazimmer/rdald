@@ -82,7 +82,7 @@ class ReaderActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = savedText?.title ?: "RdAld"
+        supportActionBar?.title = savedText?.title ?: "NaraTTS"
     }
 
     private fun setupControls() {

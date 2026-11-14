@@ -11,6 +11,7 @@
         android:name=".ReadAloudApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.ReadAloud"
@@ -45,7 +46,7 @@
         <activity android:name=".ReaderActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
 
-        <!-- media3 MediaSessionService: makes RdAld a proper media app so the system
+        <!-- media3 MediaSessionService: makes NaraTTS a proper media app so the system
              routes Bluetooth AVRCP / media buttons here and shows it in media controls. -->
         <service
             android:name=".service.PlaybackService"

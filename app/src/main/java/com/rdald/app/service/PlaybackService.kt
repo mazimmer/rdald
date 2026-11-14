@@ -74,7 +74,7 @@ class PlaybackService : MediaLibraryService() {
             }
             ACTION_LOAD_TEXT -> {
                 val text = intent.getStringExtra(EXTRA_TEXT) ?: ""
-                val title = intent.getStringExtra(EXTRA_TITLE) ?: "RdAld"
+                val title = intent.getStringExtra(EXTRA_TITLE) ?: "NaraTTS"
                 val id = intent.getStringExtra(EXTRA_ID) ?: ""
                 val progress = intent.getIntExtra(EXTRA_PROGRESS, 0)
                 player?.playText(title, text, id, progress, announceTime = true)

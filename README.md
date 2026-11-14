@@ -1,4 +1,4 @@
-# RdAld (ReadAloud v2)
+# NaraTTS (ReadAloud v2)
 
 Android app that turns links and text into listenable, read-aloud articles using the
 device's Text‑to‑Speech engine. Share a link, it downloads the article in "reader mode",
@@ -213,6 +213,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **0.5.7** — the top-of-tab summary also shows **remaining** time (per-item progress aware).
 - **0.5.8** — tapping a paragraph / seeking / forward-rewind now **aborts a still-playing title
   or announcement** and jumps immediately instead of waiting for it to finish.
+- **0.6.0** — renamed the app to **NaraTTS** (pun on *narrates* + TTS) with a new adaptive
+  launcher icon (a speech bubble that doubles as a page of text; paper background, black glyph,
+  high-contrast for e-ink). The `applicationId`/package stays `com.rdald.app`, so existing
+  libraries and settings are preserved.
 
 ## Known limitations / next steps
 
