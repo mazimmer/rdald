@@ -66,8 +66,8 @@ class ReaderActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 val c = controller ?: return
-                val dur = c.duration.coerceAtLeast(0L)
-                if (dur > 0) c.seekTo(dur * seekBar.progress / 100)
+                val count = c.mediaItemCount
+                if (count > 0) c.seekTo(count * seekBar.progress / 100, 0L)
             }
         })
     }
@@ -116,9 +116,9 @@ class ReaderActivity : AppCompatActivity() {
         )
         binding.btnPlayPause.contentDescription =
             if (c.isPlaying) getString(R.string.action_pause) else getString(R.string.action_play)
-        val dur = c.duration
-        if (dur > 0) {
-            binding.seekBar.progress = ((c.currentPosition.coerceAtLeast(0L) * 100) / dur).toInt()
+        val count = c.mediaItemCount
+        if (count > 0) {
+            binding.seekBar.progress = (c.currentMediaItemIndex.coerceAtLeast(0) * 100) / count
         }
     }
 
