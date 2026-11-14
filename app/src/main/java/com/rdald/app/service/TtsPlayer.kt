@@ -93,6 +93,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     fun playText(newTitle: String, text: String) {
         mainHandler.post {
+            // Refresh speech settings so changes made in Settings apply to this item.
+            val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            speechRate = prefs.getInt("speech_rate", 100) / 100f
+            speechPitch = prefs.getInt("speech_pitch", 100) / 100f
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
             title = newTitle.ifBlank { "RdAld" }
             sentences = text.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
             index = 0
@@ -123,8 +129,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
     }
 
-    private fun fileFor(sentence: String): File =
-        File(context.cacheDir, "rdald_" + Math.abs(sentence.hashCode()) + ".wav")
+    private fun fileFor(sentence: String): File {
+        // Include rate/pitch in the cache key so a changed speed re-synthesizes instead of
+        // replaying a file rendered at the old speed.
+        val rt = (speechRate * 100).toInt()
+        val pt = (speechPitch * 100).toInt()
+        return File(context.cacheDir, "rdald_" + Math.abs(sentence.hashCode()) + "_${rt}_${pt}.wav")
+    }
 
     private fun buildPlaylist(): List<MediaItemData> {
         if (sentences.isEmpty()) return emptyList()

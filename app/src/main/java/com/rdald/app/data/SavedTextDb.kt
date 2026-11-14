@@ -51,7 +51,7 @@ class SavedTextDb private constructor(context: Context) :
     fun getAll(): List<SavedText> {
         val list = ArrayList<SavedText>()
         readableDatabase.query(
-            "saved_texts", null, null, null, null, null, "createdAt DESC"
+            "saved_texts", null, null, null, null, null, "createdAt ASC"
         ).use { c ->
             val idIdx = c.getColumnIndexOrThrow("id")
             val tIdx = c.getColumnIndexOrThrow("title")
