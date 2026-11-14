@@ -1,24 +1,19 @@
 package com.rdald.app.service
 
 import android.app.PendingIntent
-import android.content.ComponentName
 import android.content.Intent
-import android.media.AudioManager
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.rdald.app.receiver.AppMediaButtonReceiver
 
 /**
  * media3 MediaSessionService — the same mechanism AntennaPod uses. As a real
  * MediaSessionService the system treats RdAld as a media app.
  *
- * Additionally we register our own media-button receiver and forward AVRCP key
- * events explicitly: on some OEMs (e.g. Samsung) the system never sets the
- * "media button session" for third-party apps, so Bluetooth AVRCP presses would
- * otherwise be dropped. Registering the receiver gives AudioManager a target.
+ * The AppMediaButtonReceiver (a media3 MediaButtonReceiver subclass) forwards
+ * ACTION_MEDIA_BUTTON intents here; we dispatch the key code into the player.
  */
 class PlaybackService : MediaSessionService() {
 
@@ -29,10 +24,6 @@ class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private var player: TtsPlayer? = null
-    private var audioManager: AudioManager? = null
-    private val mediaButtonComponent: ComponentName by lazy {
-        ComponentName(this, AppMediaButtonReceiver::class.java)
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -67,12 +58,6 @@ class PlaybackService : MediaSessionService() {
                 }
             })
             .build()
-
-        // Give AudioManager a media-button receiver as a fallback for AVRCP on OEMs
-        // that don't assign a "media button session".
-        audioManager = getSystemService(AUDIO_SERVICE) as? AudioManager
-        @Suppress("DEPRECATION")
-        audioManager?.registerMediaButtonEventReceiver(mediaButtonComponent)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -81,14 +66,14 @@ class PlaybackService : MediaSessionService() {
             if (code != -1) player?.onMediaKey(code)
             return START_STICKY
         }
+        // ACTION_MEDIA_BUTTON is handled by media3's MediaSessionService via the
+        // AppMediaButtonReceiver; don't intercept it here to avoid double toggling.
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
-        @Suppress("DEPRECATION")
-        audioManager?.unregisterMediaButtonEventReceiver(mediaButtonComponent)
         mediaSession?.run {
             player.release()
             release()
