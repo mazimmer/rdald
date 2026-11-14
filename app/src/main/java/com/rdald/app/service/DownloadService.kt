@@ -61,7 +61,8 @@ class DownloadService : Service() {
                         content = res.text,
                         createdAt = System.currentTimeMillis(),
                         id = id,
-                        iconPath = iconPath
+                        iconPath = iconPath,
+                        sourceUrl = res.baseUrl
                     )
                 )
                 sendBroadcast(Intent(ACTION_TEXTS_CHANGED).setPackage(packageName))

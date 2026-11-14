@@ -14,7 +14,7 @@ headsets**.
 - Kotlin, single module (`:app`).
 - Package / applicationId: `com.rdald.app` (app label: **NaraTTS**).
 
-## Features (current, v0.7.3)
+## Features (current, v0.7.5)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -54,7 +54,15 @@ headsets**.
   `enginePkg|voiceName`. Playback keeps **one TTS instance per engine** and picks a random selected
   voice across engines for each item, switching engines as needed.
 - **Speech rate / pitch** settings applied per item.
+- **Configurable time-announcement threshold** (Settings → “Time announcement threshold”, default
+  **5 min**, 0 = always): the total/remaining-time announcement only plays when the item's
+  remaining time exceeds this many minutes.
+- **Tap the reader title bar** to open the article's **original URL** in the default browser
+  (downloaded items now store `sourceUrl`).
 - Background playback via a foreground `MediaLibraryService`.
+- **Reader overflow menu → “Deselect current voice”**: drops the voice currently reading (adds
+  its `enginePkg|voiceName` key to deselected) and randomly picks another fitting, still-selected
+  voice across engines, then re-reads the current sentence with it.
 - **Reads the item title first** (in the item's own voice), then the optional time announcement,
   then the text — reading only starts after the title audio has fully finished.
 - **Spoken announcements**: `"The item time is N minutes"` / `"The remaining item time is N
@@ -109,7 +117,7 @@ Key classes (under `app/src/main/java/com/rdald/app/`):
 - `receiver/AppMediaButtonReceiver` — extends media3 `MediaButtonReceiver` (AVRCP forwarding).
 - `data/SavedTextDb` — `SQLiteOpenHelper` persistence (no Room/KSP — see notes).
 - `SavedText` — `@Parcelize` data model (title, content, createdAt, id, archived, progress,
-  iconPath).
+  iconPath, sourceUrl).
 
 ## Critical implementation details (hard-won)
 
@@ -190,8 +198,8 @@ Key classes (under `app/src/main/java/com/rdald/app/`):
 
 ## Persistence
 
-SQLite via framework `SQLiteOpenHelper` (`readaloud.db`, schema **v4**, table `saved_texts`:
-`id/title/content/createdAt/archived/progress/iconPath`). Migrations are additive
+SQLite via framework `SQLiteOpenHelper` (`readaloud.db`, schema **v5**, table `saved_texts`:
+`id/title/content/createdAt/archived/progress/iconPath/sourceUrl`). Migrations are additive
 (`ALTER TABLE ADD COLUMN`) so existing items survive upgrades. Room was avoided because the
 only cached Room (2.8.5) requires
 Kotlin 2.x + KSP while the project uses Kotlin 1.9.20; the toolchain upgrade was riskier than
@@ -258,6 +266,11 @@ real store/F-Droid release you'd sign with your own key (F-Droid signs on its si
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.5** — configurable **time-announcement threshold** (default 5 min); tapping the reader
+  **title bar opens the original article URL** in the browser (DB schema **v5** adds `sourceUrl`).
+- **0.7.4** — Reader overflow menu **“Deselect current voice”**: removes the active voice from the
+  selection and re-picks another fitting selected voice (across engines), re-reading the current
+  sentence. Sent to the service via a media3 custom session command.
 - **0.7.3** — **unified all-engine voice view**: the picker aggregates voices from every installed
   engine; missing engines' selections are pruned on open, new engines default to selected, and
   playback holds one TTS instance per engine and randomly picks selected voices across engines
@@ -266,8 +279,8 @@ real store/F-Droid release you'd sign with your own key (F-Droid signs on its si
 ## Known limitations / next steps
 
 - Sentence splitting is regex-based (`(?<=[.!?])\s+`); may split on abbreviations.
-- Downloaded items don't retain the source URL in the DB (title/content/icon only), so the icon
-  cannot be re-fetched later without re-downloading.
+- Items saved **before v0.7.5** have no `sourceUrl`, so tapping their title bar shows
+  “No source link for this item”; only newly downloaded items store the URL.
 - Items saved **before v0.5.5** have no favicon (the column was added later); only newly
   downloaded items show one.
 - Spoken announcements are English-only; the reading itself uses the detected-language voice.

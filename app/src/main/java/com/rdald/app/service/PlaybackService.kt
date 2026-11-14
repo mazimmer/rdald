@@ -2,9 +2,12 @@ package com.rdald.app.service
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -24,6 +27,8 @@ class PlaybackService : MediaLibraryService() {
         const val EXTRA_TITLE = "com.rdald.app.extra.TITLE"
         const val EXTRA_ID = "com.rdald.app.extra.ID"
         const val EXTRA_PROGRESS = "com.rdald.app.extra.PROGRESS"
+        // Custom session command from the reader UI to swap the current voice.
+        const val CMD_DESELECT_VOICE = "com.rdald.app.DESELECT_VOICE"
     }
 
     private var mediaSession: MediaLibrarySession? = null
@@ -51,6 +56,32 @@ class PlaybackService : MediaLibraryService() {
                 return Futures.immediateFuture(
                     MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)
                 )
+            }
+
+            override fun onConnect(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo
+            ): MediaSession.ConnectionResult {
+                // Advertise our custom command so MediaController.sendCustomCommand reaches us.
+                val commands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                    .add(SessionCommand(CMD_DESELECT_VOICE, Bundle.EMPTY))
+                    .build()
+                return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                    .setAvailableSessionCommands(commands)
+                    .build()
+            }
+
+            override fun onCustomCommand(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                customCommand: SessionCommand,
+                args: Bundle
+            ): ListenableFuture<SessionResult> {
+                if (customCommand.customAction == CMD_DESELECT_VOICE) {
+                    player?.deselectCurrentVoiceAndSwitch()
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+                }
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
             }
         }
 

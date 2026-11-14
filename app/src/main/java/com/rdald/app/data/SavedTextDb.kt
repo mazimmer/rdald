@@ -10,9 +10,10 @@ import com.rdald.app.SavedText
  * Simple SQLite persistence for saved texts (framework SQLiteOpenHelper; no extra deps).
  * Schema v2 adds an `archived` flag for the inbox/archive split.
  * Schema v4 adds `iconPath` for a cached article favicon.
+ * Schema v5 adds `sourceUrl` (the article URL, to open in a browser).
  */
 class SavedTextDb private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 4) {
+    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 5) {
 
     companion object {
         @Volatile
@@ -33,7 +34,8 @@ class SavedTextDb private constructor(context: Context) :
                 "createdAt INTEGER NOT NULL, " +
                 "archived INTEGER NOT NULL DEFAULT 0, " +
                 "progress INTEGER NOT NULL DEFAULT 0, " +
-                "iconPath TEXT)"
+                "iconPath TEXT, " +
+                "sourceUrl TEXT)"
         )
     }
 
@@ -47,6 +49,9 @@ class SavedTextDb private constructor(context: Context) :
         if (oldVersion < 4) {
             db.execSQL("ALTER TABLE saved_texts ADD COLUMN iconPath TEXT")
         }
+        if (oldVersion < 5) {
+            db.execSQL("ALTER TABLE saved_texts ADD COLUMN sourceUrl TEXT")
+        }
     }
 
     fun insert(item: SavedText) {
@@ -58,6 +63,7 @@ class SavedTextDb private constructor(context: Context) :
             put("archived", if (item.archived) 1 else 0)
             put("progress", item.progress)
             put("iconPath", item.iconPath)
+            put("sourceUrl", item.sourceUrl)
         }
         writableDatabase.insertWithOnConflict("saved_texts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
@@ -86,12 +92,13 @@ class SavedTextDb private constructor(context: Context) :
             val aIdx = c.getColumnIndexOrThrow("archived")
             val pIdx = c.getColumnIndexOrThrow("progress")
             val iconIdx = c.getColumnIndexOrThrow("iconPath")
+            val urlIdx = c.getColumnIndexOrThrow("sourceUrl")
             while (c.moveToNext()) {
                 list.add(
                     SavedText(
                         c.getString(tIdx), c.getString(cIdx), c.getLong(crIdx),
                         c.getString(idIdx), c.getInt(aIdx) != 0, c.getInt(pIdx),
-                        c.getString(iconIdx)
+                        c.getString(iconIdx), c.getString(urlIdx)
                     )
                 )
             }
@@ -109,7 +116,8 @@ class SavedTextDb private constructor(context: Context) :
                     c.getString(c.getColumnIndexOrThrow("id")),
                     c.getInt(c.getColumnIndexOrThrow("archived")) != 0,
                     c.getInt(c.getColumnIndexOrThrow("progress")),
-                    c.getString(c.getColumnIndexOrThrow("iconPath"))
+                    c.getString(c.getColumnIndexOrThrow("iconPath")),
+                    c.getString(c.getColumnIndexOrThrow("sourceUrl"))
                 )
             }
         }

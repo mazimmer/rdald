@@ -3,18 +3,22 @@ package com.rdald.app
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -83,6 +87,61 @@ class ReaderActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = savedText?.title ?: "NaraTTS"
+        // Tapping the title bar opens the original article in the default browser.
+        binding.toolbar.setOnClickListener { openSourceUrl() }
+    }
+
+    private fun openSourceUrl() {
+        val url = savedText?.sourceUrl
+        if (url.isNullOrBlank()) {
+            Toast.makeText(this, "No source link for this item", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: Exception) {
+            Toast.makeText(this, "No app to open links", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.reader_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                return true
+            }
+            R.id.action_deselect_voice -> {
+                deselectCurrentVoice()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    /**
+     * Ask the service to drop the voice currently used for this item and pick another fitting,
+     * still-selected voice. It re-reads the current sentence with the new voice.
+     */
+    private fun deselectCurrentVoice() {
+        val c = controller
+        if (c == null) {
+            Toast.makeText(this, "Player not ready", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            c.sendCustomCommand(
+                SessionCommand(PlaybackService.CMD_DESELECT_VOICE, Bundle.EMPTY),
+                Bundle.EMPTY
+            )
+            Toast.makeText(this, "Current voice deselected", Toast.LENGTH_SHORT).show()
+        } catch (_: Exception) {
+            Toast.makeText(this, "Couldn't change voice", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupControls() {

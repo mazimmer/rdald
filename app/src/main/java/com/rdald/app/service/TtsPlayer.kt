@@ -290,7 +290,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
 
             val remainingSec = currentTotalSeconds * (100 - currentStartPercent) / 100
-            val shouldAnnounce = announceTime && remainingSec > 300
+            val thresholdMin = prefs.getInt("announce_threshold_min", 5).coerceAtLeast(0)
+            val shouldAnnounce = announceTime && remainingSec > thresholdMin * 60
             val myGen = announceGen
             val afterTitle = {
                 if (myGen == announceGen) {
@@ -462,7 +463,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     /** Pick a random installed voice whose language matches [base] (e.g. "en", "de"). */
     /** Pick a random *selected* voice for [base] across ALL ready engines. */
-    private fun pickVoice(base: String): PickedVoice? {
+    private fun pickVoice(base: String, avoidKey: String? = null): PickedVoice? {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val deselected = prefs.getStringSet("deselected_voices", emptySet()) ?: emptySet()
         val candidates = ArrayList<PickedVoice>()
@@ -495,9 +496,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
         // Selections are stored as keys "enginePkg|voiceName" so the same voice name from two
         // different engines is tracked independently. New engines' voices default to selected.
-        val allowed = candidates.filter { it.key !in deselected }.ifEmpty {
+        val notCurrent = if (avoidKey == null) candidates else candidates.filter { it.key != avoidKey }
+        val pool = if (notCurrent.isNotEmpty()) notCurrent else candidates
+        val allowed = pool.filter { it.key !in deselected }.ifEmpty {
             // User deselected every voice for this language: still speak, using them anyway.
-            candidates
+            pool
         }
         val local = allowed.filter { !it.voice.isNetworkConnectionRequired }.ifEmpty { allowed }
         val chosen = local.randomOrNull()
@@ -507,6 +510,43 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 "allowed=${allowed.size} chose=${chosen?.voice?.name}@${chosen?.enginePkg}"
         )
         return chosen
+    }
+
+    /**
+     * Deselect the voice currently used for this item, then randomly pick another fitting,
+     * still-selected voice (possibly from another engine) and re-read the current sentence.
+     */
+    fun deselectCurrentVoiceAndSwitch() {
+        mainHandler.post {
+            if (sentences.isEmpty()) return@post
+            val curPkg = itemEnginePkg
+            val curName = itemVoiceName
+            val curKey = if (curPkg != null && curName.isNotBlank() && curName != itemLangBase) {
+                "$curPkg|$curName"
+            } else {
+                null
+            }
+            if (curKey != null) {
+                val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                val ds = HashSet(prefs.getStringSet("deselected_voices", emptySet()) ?: emptySet())
+                ds.add(curKey)
+                prefs.edit().putStringSet("deselected_voices", ds).apply()
+            }
+            val next = pickVoice(itemLangBase, avoidKey = curKey)
+            if (next == null) {
+                Log.w(TAG, "deselectCurrentVoiceAndSwitch: no alternative voice")
+                return@post
+            }
+            itemVoice = next.voice
+            itemEnginePkg = next.enginePkg
+            itemVoiceName = next.voice.name
+            makeActive(next.enginePkg)
+            applyItemVoice()
+            requestedSynth.clear()
+            // Re-read the current sentence from its start with the new voice.
+            if (playWhenReady) speakAt(index) else invalidateState()
+            Log.i(TAG, "deselectCurrentVoiceAndSwitch -> ${next.voice.name}@${next.enginePkg}")
+        }
     }
 
     private fun buildPlaylist(): List<MediaItemData> {

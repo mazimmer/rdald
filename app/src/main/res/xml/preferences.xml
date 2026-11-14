@@ -19,6 +19,13 @@
             android:min="50"
             android:max="200"
             android:defaultValue="100" />
+        <SeekBarPreference
+            android:key="announce_threshold_min"
+            android:title="Time announcement threshold"
+            android:summary="Announce total/remaining time only when longer than N minutes (0 = always)"
+            android:min="0"
+            android:max="60"
+            android:defaultValue="5" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Forward/Rewind">
         <SeekBarPreference
