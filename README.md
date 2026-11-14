@@ -47,10 +47,12 @@ headsets**.
   dash = some, empty = none). Everything is **selected by default**; newly installed voices are
   selected automatically (we persist only the *deselected* set). Tapping a voice **plays a short
   sample** in that voice (localized per language).
-- **TTS engine switch**: voices are engine-specific, so the Voices screen has **⋮ → Change engine…**
-  to pick among all installed TTS engines (defaults to the system default). The chosen engine is
-  saved (`tts_engine`) and used for playback. A `<queries>` entry for `TTS_SERVICE` lets the app
-  discover other engines on Android 11+.
+- **All engines, unified**: voices are engine-specific, so the app discovers every installed TTS
+  engine (`<queries>` for `TTS_SERVICE`) and shows **all their voices together** in the picker
+  (the engine label is shown per voice). On open it prunes selections for engines that are no
+  longer installed; new engines' voices are selected by default. Selection keys are
+  `enginePkg|voiceName`. Playback keeps **one TTS instance per engine** and picks a random selected
+  voice across engines for each item, switching engines as needed.
 - **Speech rate / pitch** settings applied per item.
 - Background playback via a foreground `MediaLibraryService`.
 - **Reads the item title first** (in the item's own voice), then the optional time announcement,
@@ -235,8 +237,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **0.7.1** — voice picker became a **collapsible tree** (folded by default) with a master
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
-- **0.7.2** — added an **in-app TTS engine switcher** (Voices ⋮ → Change engine…), since voices
-  are per-engine; defaults to the system default and is used by playback.
+- **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.3** — **unified all-engine voice view**: the picker aggregates voices from every installed
+  engine; missing engines' selections are pruned on open, new engines default to selected, and
+  playback holds one TTS instance per engine and randomly picks selected voices across engines
+  (switching engines as needed). Selection keys are `enginePkg|voiceName`.
 
 ## Known limitations / next steps
 

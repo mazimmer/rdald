@@ -51,6 +51,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     companion object {
         private const val TAG = "TtsPlayer"
         private const val ITEM_DURATION_US = 1_000_000L
+        private const val DEFAULT_ENGINE_KEY = "__default__"
 
         /** The item currently loaded/playing in the (single) player instance, for the UI to follow. */
         @Volatile
@@ -74,9 +75,24 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var speechRate = 1.0f
     private var speechPitch = 1.0f
 
+    // Active engine instance plus a pool of instances keyed by engine package (voices are
+    // engine-specific, so cross-engine playback needs one instance per engine).
     private var tts: TextToSpeech? = null
+    private var activeEnginePkg: String? = null
+    private val ttsInstances = HashMap<String, TextToSpeech>()
+    private val readyEngines = HashSet<String>()
     private var ttsReady = false
     private var pendingIndex: Int? = null
+
+    private val progressListener = object : android.speech.tts.UtteranceProgressListener() {
+        override fun onStart(id: String?) {}
+        override fun onDone(id: String?) { onSynthDone(id) }
+        override fun onError(id: String?) { onSynthDone(id) }
+    }
+
+    private data class PickedVoice(val enginePkg: String, val voice: android.speech.tts.Voice) {
+        val key: String get() = "$enginePkg|${voice.name}"
+    }
     private var pendingPlayTitle: String? = null
     private var pendingPlayText: String? = null
     private var pendingPlayItemId: String? = null
@@ -95,6 +111,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private var itemVoice: android.speech.tts.Voice? = null
     private var itemVoiceName: String = "default"
+    private var itemEnginePkg: String? = null
     private var itemLangBase: String = "en"
 
     private var announcePlayer: MediaPlayer? = null
@@ -113,21 +130,55 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var hasAudioFocus = false
 
     init {
-        val enginePkg = com.rdald.app.TtsEngines.resolve(context)
-        tts = TextToSpeech(context, TextToSpeech.OnInitListener { status ->
-            if (status == TextToSpeech.SUCCESS) {
+        val defaultPkg = com.rdald.app.TtsEngines.resolve(context)
+        val pkgs = com.rdald.app.TtsEngines.installed(context).map { it.packageName }.toMutableList()
+        if (defaultPkg != null && defaultPkg !in pkgs) pkgs.add(0, defaultPkg)
+        if (pkgs.isEmpty()) {
+            createEngine(null)
+        } else {
+            for (p in pkgs) createEngine(p)
+            if (defaultPkg != null) makeActive(defaultPkg)
+        }
+    }
+
+    /** Create (once) a TTS instance bound to [pkg] (null = system default). */
+    private fun createEngine(pkg: String?) {
+        val key = pkg ?: DEFAULT_ENGINE_KEY
+        if (ttsInstances.containsKey(key)) return
+        val listener = TextToSpeech.OnInitListener { status -> onEngineInit(key, status) }
+        val inst = if (pkg != null) {
+            TextToSpeech(context, listener, pkg)
+        } else {
+            TextToSpeech(context, listener)
+        }
+        ttsInstances[key] = inst
+        if (activeEnginePkg == null) {
+            activeEnginePkg = key
+            tts = inst
+        }
+    }
+
+    private fun onEngineInit(key: String, status: Int) {
+        mainHandler.post {
+            if (status != TextToSpeech.SUCCESS) {
+                Log.e(TAG, "TTS init failed ($key): $status")
+                return@post
+            }
+            readyEngines.add(key)
+            val inst = ttsInstances[key] ?: return@post
+            try {
+                inst.setSpeechRate(speechRate)
+                inst.setPitch(speechPitch)
+                inst.setOnUtteranceProgressListener(progressListener)
+                inst.language = Locale.getDefault()
+            } catch (_: Exception) {
+            }
+            if (key == activeEnginePkg) {
                 ttsReady = true
-                tts?.language = Locale.getDefault()
-                tts?.setSpeechRate(speechRate)
-                tts?.setPitch(speechPitch)
-                tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
-                    override fun onStart(id: String?) {}
-                    override fun onDone(id: String?) { onSynthDone(id) }
-                    override fun onError(id: String?) { onSynthDone(id) }
-                })
+                applyItemVoiceToActive()
                 pendingIndex?.let { pi ->
                     pendingIndex = null
-                    mainHandler.post { speakAt(pi) }
+                    if (playWhenReady) speakAt(pi)
                 }
                 val pt = pendingPlayText
                 if (pt != null) {
@@ -140,10 +191,33 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                     pendingPlayItemId = null
                     playText(tt, pt, pid, ppct, pann)
                 }
-            } else {
-                Log.e(TAG, "TTS init failed: $status")
             }
-        }, enginePkg)
+        }
+    }
+
+    /** Point [tts] at the instance for [pkg], creating it if needed. Returns whether it is ready. */
+    private fun makeActive(pkg: String?): Boolean {
+        val key = pkg ?: DEFAULT_ENGINE_KEY
+        if (!ttsInstances.containsKey(key)) createEngine(pkg)
+        if (activeEnginePkg != key) {
+            activeEnginePkg = key
+            tts = ttsInstances[key]
+            ttsReady = key in readyEngines
+        }
+        return key in readyEngines
+    }
+
+    /** Re-apply the current item's voice after an engine finishes initializing. */
+    private fun applyItemVoiceToActive() {
+        val v = itemVoice ?: return
+        if (itemEnginePkg != activeEnginePkg) return
+        try {
+            tts?.voice = v
+            currentVoiceName = "${itemEnginePkg ?: DEFAULT_ENGINE_KEY}|$itemVoiceName"
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+        } catch (_: Exception) {
+        }
     }
 
     fun setTtsSettings(rate: Float, pitch: Float) {
@@ -201,9 +275,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
             val langTag = detectLanguage(text)
             itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
-            itemVoice = pickVoice(itemLangBase)
-            itemVoiceName = itemVoice?.name ?: itemLangBase
-            Log.i(TAG, "detected language=$langTag base=$itemLangBase voice=$itemVoiceName snippet=${text.take(60).replace("\n", " ")}")
+            val picked = pickVoice(itemLangBase)
+            itemVoice = picked?.voice
+            itemEnginePkg = picked?.enginePkg
+            itemVoiceName = picked?.voice?.name ?: itemLangBase
+            if (picked != null) makeActive(picked.enginePkg)
+            Log.i(TAG, "detected language=$langTag base=$itemLangBase voice=$itemVoiceName engine=$itemEnginePkg snippet=${text.take(60).replace("\n", " ")}")
 
             if (sentences.isEmpty()) {
                 playWhenReady = false
@@ -234,16 +311,20 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     private fun applyItemVoice() {
+        makeActive(itemEnginePkg)
         val v = itemVoice
-        if (v != null) {
-            tts?.voice = v
-            currentVoiceName = itemVoiceName
-        } else {
-            tts?.language = Locale(itemLangBase)
-            currentVoiceName = itemLangBase
+        try {
+            if (v != null) {
+                tts?.voice = v
+                currentVoiceName = "${itemEnginePkg ?: DEFAULT_ENGINE_KEY}|$itemVoiceName"
+            } else {
+                tts?.language = Locale(itemLangBase)
+                currentVoiceName = itemLangBase
+            }
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+        } catch (_: Exception) {
         }
-        tts?.setSpeechRate(speechRate)
-        tts?.setPitch(speechPitch)
     }
 
     private fun startSpeaking(start: Int) {
@@ -380,32 +461,50 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     /** Pick a random installed voice whose language matches [base] (e.g. "en", "de"). */
-    private fun pickVoice(base: String): android.speech.tts.Voice? {
-        val voices = try {
-            tts?.voices
-        } catch (e: Exception) {
-            null
-        } ?: run {
-            Log.w(TAG, "pickVoice: voices == null")
-            return null
-        }
-        val matching = voices.filter { it.locale.language.equals(base, ignoreCase = true) }
-        val langs = voices.map { it.locale.language }.distinct().sorted()
-        Log.i(TAG, "pickVoice base=$base total=${voices.size} matching=${matching.size} langs=$langs")
-        if (matching.isEmpty()) return null
-        // Respect the user's selected-voice set. We store the *deselected* names so any voice
-        // is selected by default, including voices that are installed later.
+    /** Pick a random *selected* voice for [base] across ALL ready engines. */
+    private fun pickVoice(base: String): PickedVoice? {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val deselected = prefs.getStringSet("deselected_voices", emptySet()) ?: emptySet()
-        val allowed = matching.filter { it.name !in deselected }.ifEmpty {
-            // User deselected every voice for this language: still speak, using them anyway.
-            matching
+        val candidates = ArrayList<PickedVoice>()
+        for ((pkg, inst) in ttsInstances) {
+            if (pkg !in readyEngines) continue
+            val vs = try {
+                inst.voices
+            } catch (_: Exception) {
+                null
+            } ?: continue
+            for (v in vs) {
+                if (v.locale.language.equals(base, ignoreCase = true)) {
+                    candidates.add(PickedVoice(pkg, v))
+                }
+            }
         }
-        val local = allowed.filter { !it.isNetworkConnectionRequired }.ifEmpty { allowed }
+        if (candidates.isEmpty()) {
+            // No ready engine advertises this language yet; fall back to the active instance.
+            val vs = try {
+                tts?.voices
+            } catch (_: Exception) {
+                null
+            } ?: run {
+                Log.w(TAG, "pickVoice: no voices for base=$base")
+                return null
+            }
+            val fb = vs.filter { it.locale.language.equals(base, ignoreCase = true) }
+            val chosen = fb.randomOrNull() ?: return null
+            return PickedVoice(activeEnginePkg ?: DEFAULT_ENGINE_KEY, chosen)
+        }
+        // Selections are stored as keys "enginePkg|voiceName" so the same voice name from two
+        // different engines is tracked independently. New engines' voices default to selected.
+        val allowed = candidates.filter { it.key !in deselected }.ifEmpty {
+            // User deselected every voice for this language: still speak, using them anyway.
+            candidates
+        }
+        val local = allowed.filter { !it.voice.isNetworkConnectionRequired }.ifEmpty { allowed }
         val chosen = local.randomOrNull()
         Log.i(
             TAG,
-            "pickVoice base=$base matching=${matching.size} allowed=${allowed.size} chose=${chosen?.name} locale=${chosen?.locale}"
+            "pickVoice base=$base engines=${ttsInstances.size} candidates=${candidates.size} " +
+                "allowed=${allowed.size} chose=${chosen?.voice?.name}@${chosen?.enginePkg}"
         )
         return chosen
     }
@@ -603,10 +702,19 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             applyItemVoice()
         } else {
             val en = pickVoice("en")
-            if (en != null) tts?.voice = en else tts?.language = Locale.ENGLISH
+            if (en != null) {
+                makeActive(en.enginePkg)
+                try {
+                    tts?.voice = en.voice
+                } catch (_: Exception) {
+                }
+                currentVoiceName = en.key
+            } else {
+                tts?.language = Locale.ENGLISH
+                currentVoiceName = "en"
+            }
             tts?.setSpeechRate(1.0f)
             tts?.setPitch(1.0f)
-            currentVoiceName = "en"
         }
         Log.i(TAG, "announce(useItemVoice=$useItemVoice): $text")
         val vt = currentVoiceName.replace(Regex("[^A-Za-z0-9]"), "_")
