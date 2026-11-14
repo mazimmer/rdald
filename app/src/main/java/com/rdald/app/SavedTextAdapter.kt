@@ -1,12 +1,58 @@
 package com.rdald.app
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+import android.util.LruCache
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rdald.app.databinding.ItemSavedTextBinding
+import java.util.concurrent.Executors
+
+/**
+ * Small async favicon loader with an in-memory cache. Favicons are tiny files stored on
+ * disk by the download service; decoding happens off the main thread and is guarded
+ * against RecyclerView view recycling.
+ */
+private object FaviconLoader {
+    private val cache = LruCache<String, Bitmap>(64)
+    private val executor = Executors.newSingleThreadExecutor()
+    private val main = Handler(Looper.getMainLooper())
+
+    fun load(path: String?, iv: ImageView) {
+        if (path.isNullOrBlank()) {
+            iv.tag = null
+            iv.visibility = View.INVISIBLE
+            iv.setImageDrawable(null)
+            return
+        }
+        iv.visibility = View.VISIBLE
+        iv.tag = path
+        cache.get(path)?.let {
+            iv.setImageBitmap(it)
+            return
+        }
+        iv.setImageDrawable(null)
+        executor.execute {
+            val bmp = try {
+                BitmapFactory.decodeFile(path)
+            } catch (_: Throwable) {
+                null
+            }
+            if (bmp != null) cache.put(path, bmp)
+            main.post {
+                if (iv.tag == path && bmp != null) iv.setImageBitmap(bmp)
+            }
+        }
+    }
+}
 
 /**
  * List adapter with long-press multi-selection (no checkboxes).
@@ -61,6 +107,7 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
 
     inner class ViewHolder(private val binding: ItemSavedTextBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: SavedText) {
+            FaviconLoader.load(item.iconPath, binding.ivIcon)
             binding.tvTitle.text = item.title
             binding.tvPreview.text = item.content.take(100).replace("\n", " ") + "..."
             val dateStr = android.text.format.DateUtils.formatDateTime(

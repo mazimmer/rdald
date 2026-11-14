@@ -168,6 +168,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             pendingPlayTitle = null
             pendingPlayText = null
+            // Stop any previous item's audio so only the title/announcement is heard first.
+            try {
+                mediaPlayer?.pause()
+            } catch (_: Exception) {
+            }
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f

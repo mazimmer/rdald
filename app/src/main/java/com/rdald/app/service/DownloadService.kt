@@ -2,13 +2,16 @@ package com.rdald.app.service
 
 import android.app.Service
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.util.Log
 import com.rdald.app.SavedText
 import com.rdald.app.data.SavedTextDb
 import net.dankito.readability4j.Readability4J
 import org.jsoup.Jsoup
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 
 /**
  * Downloads a URL in the background, extracts the main article text in "reader mode"
@@ -17,8 +20,18 @@ import java.net.URL
  */
 class DownloadService : Service() {
 
+    private data class ArticleResult(
+        val title: String,
+        val text: String,
+        val baseUrl: String,
+        val html: String
+    )
+
     companion object {
         private const val TAG = "DownloadService"
+        private const val USER_AGENT =
+            "Mozilla/5.0 (Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
+        private const val MAX_ICON_BYTES = 512 * 1024
         const val ACTION_DOWNLOAD = "com.rdald.app.action.DOWNLOAD"
         const val EXTRA_URL = "com.rdald.app.extra.URL"
         const val ACTION_TEXTS_CHANGED = "com.rdald.app.action.TEXTS_CHANGED"
@@ -38,10 +51,18 @@ class DownloadService : Service() {
         }
         Thread {
             try {
-                val (title, text) = fetchArticle(url)
-                if (text.isBlank()) throw IllegalStateException("No text found")
+                val res = fetchArticle(url)
+                if (res.text.isBlank()) throw IllegalStateException("No text found")
+                val id = UUID.randomUUID().toString()
+                val iconPath = saveFavicon(res, id)
                 SavedTextDb.get(this).insert(
-                    SavedText(title = title, content = text, createdAt = System.currentTimeMillis())
+                    SavedText(
+                        title = res.title,
+                        content = res.text,
+                        createdAt = System.currentTimeMillis(),
+                        id = id,
+                        iconPath = iconPath
+                    )
                 )
                 sendBroadcast(Intent(ACTION_TEXTS_CHANGED).setPackage(packageName))
             } catch (e: Exception) {
@@ -58,16 +79,19 @@ class DownloadService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun fetchArticle(url: String): Pair<String, String> {
+    private fun fetchArticle(url: String): ArticleResult {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.connectTimeout = 15000
         conn.readTimeout = 20000
         conn.instanceFollowRedirects = true
-        conn.setRequestProperty(
-            "User-Agent",
-            "Mozilla/5.0 (Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
-        )
+        conn.setRequestProperty("User-Agent", USER_AGENT)
         val html = conn.inputStream.bufferedReader().use { it.readText() }
+        // Final URL after redirects, used to resolve the favicon.
+        val baseUrl = try {
+            conn.url.toString()
+        } catch (_: Exception) {
+            url
+        }
 
         val article = Readability4J(url, html).parse()
         val title = article.title?.trim()?.takeIf { it.isNotEmpty() } ?: url
@@ -88,7 +112,96 @@ class DownloadService : Service() {
         if (text.isEmpty()) {
             text = Jsoup.parse(html).body()?.text()?.trim().orEmpty()
         }
-        return title to text
+        return ArticleResult(title, text, baseUrl, html)
+    }
+
+    /**
+     * Find the best favicon: declared <link rel="...icon..."> entries first, then the
+     * conventional /favicon.ico. Saves the first candidate that downloads and decodes as
+     * a valid image, returning its file path (or null).
+     */
+    private fun saveFavicon(res: ArticleResult, id: String): String? {
+        val candidates = LinkedHashSet<String>()
+        try {
+            val doc = Jsoup.parse(res.html, res.baseUrl)
+            doc.select("link[href]").forEach { el ->
+                if (el.attr("rel").lowercase().contains("icon")) {
+                    val href = el.attr("href").trim()
+                    val abs = el.absUrl("href").ifBlank {
+                        if (href.startsWith("//")) "https:$href" else ""
+                    }
+                    if (abs.startsWith("http")) candidates.add(abs)
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "favicon parse failed: ${e.message}")
+        }
+        try {
+            val u = URL(res.baseUrl)
+            val origin = "${u.protocol}://${u.host}" + if (u.port > 0) ":${u.port}" else ""
+            candidates.add("$origin/favicon.ico")
+            candidates.add("$origin/apple-touch-icon.png")
+        } catch (_: Exception) {
+        }
+
+        for (iconUrl in candidates) {
+            val bytes = downloadBytes(iconUrl) ?: continue
+            if (!isValidImage(bytes)) continue
+            return try {
+                val dir = File(filesDir, "favicons").apply { mkdirs() }
+                val f = File(dir, "fav_$id.img")
+                f.writeBytes(bytes)
+                f.absolutePath
+            } catch (e: Exception) {
+                Log.w(TAG, "favicon save failed: ${e.message}")
+                null
+            }
+        }
+        return null
+    }
+
+    private fun downloadBytes(url: String): ByteArray? {
+        var conn: HttpURLConnection? = null
+        return try {
+            val c = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 6000
+                readTimeout = 8000
+                instanceFollowRedirects = true
+                setRequestProperty("User-Agent", USER_AGENT)
+                setRequestProperty("Accept", "image/*,*/*;q=0.8")
+            }
+            conn = c
+            if (c.responseCode != HttpURLConnection.HTTP_OK) return null
+            if (c.contentLength > MAX_ICON_BYTES) return null
+            c.inputStream.use { input ->
+                val out = java.io.ByteArrayOutputStream()
+                val buf = ByteArray(8192)
+                var total = 0
+                while (true) {
+                    val n = input.read(buf)
+                    if (n < 0) break
+                    total += n
+                    if (total > MAX_ICON_BYTES) return null
+                    out.write(buf, 0, n)
+                }
+                out.toByteArray()
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "favicon fetch failed ($url): ${e.message}")
+            null
+        } finally {
+            try {
+                conn?.disconnect()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun isValidImage(bytes: ByteArray): Boolean {
+        if (bytes.size < 32) return false
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+        return opts.outWidth > 0 && opts.outHeight > 0
     }
 
     override fun onBind(intent: Intent?) = null

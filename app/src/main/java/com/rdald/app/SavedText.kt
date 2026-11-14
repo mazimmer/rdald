@@ -11,5 +11,6 @@ data class SavedText(
     val createdAt: Long,
     val id: String = UUID.randomUUID().toString(),
     val archived: Boolean = false,
-    val progress: Int = 0
+    val progress: Int = 0,
+    val iconPath: String? = null
 ) : Parcelable
