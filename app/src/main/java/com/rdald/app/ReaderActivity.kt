@@ -1,16 +1,17 @@
 package com.rdald.app
 
 import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.rdald.app.databinding.ActivityReaderBinding
 import com.rdald.app.service.PlaybackService
 
@@ -18,58 +19,13 @@ class ReaderActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReaderBinding
     private var savedText: SavedText? = null
-    private var bottomSheetBehavior: BottomSheetBehavior<android.widget.FrameLayout>? = null
-    
-    private var playbackService: PlaybackService? = null
-    private var isBound = false
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as PlaybackService.LocalBinder
-            playbackService = binder.getService()
-            playbackService?.setPlaybackListener(playbackListener)
-            isBound = true
-            if (savedText != null) {
-                playbackService?.setTextTitle(savedText!!.title)
-                playbackService?.setFullText(savedText!!.content)
-            }
-        }
 
-        override fun onServiceDisconnected(name: ComponentName) {
-            playbackService = null
-            isBound = false
-        }
-    }
+    private var controller: MediaController? = null
+    private var controllerFuture: ListenableFuture<MediaController>? = null
 
-    private val playbackListener = object : PlaybackService.PlaybackListener {
-        override fun onPlay() {
-            runOnUiThread { updatePlayPauseButton(true) }
-        }
-        override fun onPause() {
-            runOnUiThread { updatePlayPauseButton(false) }
-        }
-        override fun onToggle() {
-            runOnUiThread { 
-                val isPlaying = playbackService?.isPlaying == true && playbackService?.isPaused == false
-                updatePlayPauseButton(isPlaying)
-            }
-        }
-        override fun onFastForward() {
-            runOnUiThread { Toast.makeText(this@ReaderActivity, "Forward ${playbackService?.forwardInterval ?: 30}s", Toast.LENGTH_SHORT).show() }
-        }
-        override fun onRewind() {
-            runOnUiThread { Toast.makeText(this@ReaderActivity, "Rewind ${playbackService?.rewindInterval ?: 10}s", Toast.LENGTH_SHORT).show() }
-        }
-        override fun onSeekTo(position: Int) {
-            runOnUiThread { binding.seekBar.progress = position }
-        }
-        override fun onStop() {
-            runOnUiThread { updatePlayPauseButton(false) }
-        }
-        override fun onProgressUpdate(current: Int, total: Int) {
-            runOnUiThread { 
-                val progress = if (total > 0) (current * 100 / total) else 0
-                binding.seekBar.progress = progress
-            }
+    private val playerListener = object : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            updateUi()
         }
     }
 
@@ -87,73 +43,89 @@ class ReaderActivity : AppCompatActivity() {
 
         setupToolbar()
         setupTextDisplay()
-        setupBottomSheet()
         setupControls()
-        bindPlaybackService()
+        connectController()
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = savedText?.title
+        supportActionBar?.title = savedText?.title ?: "RdAld"
     }
 
     private fun setupTextDisplay() {
         binding.tvContent.text = savedText?.content
     }
 
-    private fun setupBottomSheet() {
-        val bottomSheet = binding.bottomSheet
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
-        bottomSheetBehavior?.peekHeight = 200
-        bottomSheetBehavior?.isHideable = false
-    }
-
     private fun setupControls() {
         binding.btnPlayPause.setOnClickListener { togglePlayback() }
-        binding.btnForward.setOnClickListener { playbackService?.handleFastForward() }
-        binding.btnRewind.setOnClickListener { playbackService?.handleRewind() }
-        
+        binding.btnForward.setOnClickListener {
+            val c = controller ?: return@setOnClickListener
+            c.seekTo((c.currentPosition + 1000L).coerceAtMost(c.duration.coerceAtLeast(0L)))
+        }
+        binding.btnRewind.setOnClickListener {
+            val c = controller ?: return@setOnClickListener
+            c.seekTo((c.currentPosition - 1000L).coerceAtLeast(0L))
+        }
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser) {}
-            }
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                val c = controller ?: return
+                val dur = c.duration.coerceAtLeast(0L)
+                if (dur > 0) c.seekTo(dur * seekBar.progress / 100)
+            }
         })
     }
 
-    private fun bindPlaybackService() {
-        val intent = Intent(this, PlaybackService::class.java)
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+    private fun connectController() {
+        val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        val future = MediaController.Builder(this, token).buildAsync()
+        controllerFuture = future
+        future.addListener({
+            val c = future.get()
+            controller = c
+            c.addListener(playerListener)
+            loadText(c)
+        }, MoreExecutors.directExecutor())
+    }
+
+    private fun loadText(c: MediaController) {
+        val st = savedText ?: return
+        val extras = Bundle().apply { putString("text", st.content) }
+        val item = MediaItem.Builder()
+            .setMediaId(st.id)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(st.title)
+                    .setExtras(extras)
+                    .build()
+            )
+            .build()
+        c.setMediaItem(item)
+        c.prepare()
+        c.play()
     }
 
     private fun togglePlayback() {
-        if (playbackService != null) {
-            if (playbackService?.isPlaying == true && playbackService?.isPaused == false) {
-                playbackService?.handlePause()
-            } else {
-                playbackService?.handlePlay()
-            }
-        } else {
-            Toast.makeText(this, "Playback service not ready", Toast.LENGTH_SHORT).show()
+        val c = controller ?: run {
+            Toast.makeText(this, "Playback not ready yet", Toast.LENGTH_SHORT).show()
+            return
         }
+        if (c.isPlaying) c.pause() else c.play()
     }
 
-    private fun updatePlayPauseButton(isPlaying: Boolean) {
+    private fun updateUi() {
+        val c = controller ?: return
         binding.btnPlayPause.setImageResource(
-            if (isPlaying) R.drawable.ic_media_pause else R.drawable.ic_media_play
+            if (c.isPlaying) R.drawable.ic_media_pause else R.drawable.ic_media_play
         )
-        binding.btnPlayPause.contentDescription = if (isPlaying) "Pause" else "Play"
-    }
-
-    override fun onDestroy() {
-        if (isBound) {
-            unbindService(serviceConnection)
-            isBound = false
+        binding.btnPlayPause.contentDescription =
+            if (c.isPlaying) getString(R.string.action_pause) else getString(R.string.action_play)
+        val dur = c.duration
+        if (dur > 0) {
+            binding.seekBar.progress = ((c.currentPosition.coerceAtLeast(0L) * 100) / dur).toInt()
         }
-        super.onDestroy()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -161,4 +133,11 @@ class ReaderActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onDestroy() {
+        controller?.removeListener(playerListener)
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controller = null
+        controllerFuture = null
+        super.onDestroy()
     }
+}

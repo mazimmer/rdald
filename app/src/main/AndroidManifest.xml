@@ -33,20 +33,16 @@
         <activity android:name=".ReaderActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
 
-        <!-- PlaybackService with media playback foreground type -->
+        <!-- media3 MediaSessionService: makes RdAld a proper media app so the system
+             routes Bluetooth AVRCP / media buttons here and shows it in media controls. -->
         <service
             android:name=".service.PlaybackService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
-
-        <!-- MediaButtonReceiver for Bluetooth/AVRCP headset buttons -->
-        <receiver
-            android:name=".receiver.MediaButtonReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
-        </receiver>
+        </service>
 
     </application>
 </manifest>

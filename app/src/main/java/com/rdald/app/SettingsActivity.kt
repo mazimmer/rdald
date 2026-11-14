@@ -50,16 +50,9 @@ class SettingsActivity : AppCompatActivity() {
                 it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                     val progress = (newValue as Int)
                     it.summary = "${progress}$suffix"
-                    // Apply settings to playback service
-                    applySettingsToService()
                     true
                 }
             }
-        }
-
-        private fun applySettingsToService() {
-            val service = com.rdald.app.service.PlaybackService.getInstance()
-            service?.applySettings()
         }
     }
 }
