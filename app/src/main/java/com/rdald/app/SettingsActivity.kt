@@ -1,8 +1,11 @@
 package com.rdald.app
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SeekBarPreference
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,8 +23,33 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
+        private var prefs: SharedPreferences? = null
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preferences, rootKey)
+            prefs = preferenceManager.sharedPreferences
+
+            // Update summaries to show current values
+            updateSeekBarSummary(findPreference<SeekBarPreference>("speech_rate"), "%", 100)
+            updateSeekBarSummary(findPreference<SeekBarPreference>("speech_pitch"), "%", 100)
+            updateSeekBarSummary(findPreference<SeekBarPreference>("forward_interval"), "s", 30)
+            updateSeekBarSummary(findPreference<SeekBarPreference>("rewind_interval"), "s", 10)
+        }
+
+        private fun updateSeekBarSummary(pref: SeekBarPreference?, suffix: String, defaultValue: Int) {
+            val key = pref?.key ?: return
+            val currentValue = prefs?.getInt(key, defaultValue) ?: defaultValue
+            
+            pref?.let {
+                // Set initial summary
+                it.summary = "${currentValue}$suffix"
+                // Update on change
+                it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                    val progress = (newValue as Int)
+                    it.summary = "${progress}$suffix"
+                    true
+                }
+            }
         }
     }
 }
