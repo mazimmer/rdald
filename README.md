@@ -41,10 +41,12 @@ headsets**.
 - **Media controls**: notification + **Bluetooth AVRCP headsets** + watches (via media3).
 - **Language detection** + **random fitting voice** per item (offline voices preferred), chosen
   only from the user's **selected voices**.
-- **Voice selection** (`Settings → Voices`): every installed voice is listed, grouped by
-  **language → country/variant**, each with a checkbox. Everything is **selected by default**;
-  newly installed voices are selected automatically (we persist only the *deselected* set).
-  Toolbar actions: **Select all / Select none**.
+- **Voice selection** (`Settings → Voices`): every installed voice is listed as a **collapsible
+  tree** — a top **“All languages”** toggle, then **language → country/variant → voices** (all
+  folded initially for fast scrolling). Each level has a **tri-state** checkbox (checked = all,
+  dash = some, empty = none). Everything is **selected by default**; newly installed voices are
+  selected automatically (we persist only the *deselected* set). Tapping a voice **plays a short
+  sample** in that voice (localized per language).
 - **Speech rate / pitch** settings applied per item.
 - Background playback via a foreground `MediaLibraryService`.
 - **Reads the item title first** (in the item's own voice), then the optional time announcement,
@@ -226,6 +228,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **0.7.0** — **voice picker**: `Settings → Voices` lists all installed voices grouped by
   language → country/variant with checkboxes (all selected by default; storing the deselected
   set means new voices are auto-selected). Random voice selection now uses only selected voices.
+- **0.7.1** — voice picker became a **collapsible tree** (folded by default) with a master
+  “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
+  when toggling a voice.
 
 ## Known limitations / next steps
 
