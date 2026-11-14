@@ -7,11 +7,11 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.rdald.app.SavedText
 
 /**
- * Simple SQLite persistence for saved texts (built-in SQLiteOpenHelper; no extra deps).
- * Replaces the previous in-memory sample list so texts survive app restarts.
+ * Simple SQLite persistence for saved texts (framework SQLiteOpenHelper; no extra deps).
+ * Schema v2 adds an `archived` flag for the inbox/archive split.
  */
 class SavedTextDb private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 2) {
 
     companion object {
         @Volatile
@@ -29,13 +29,15 @@ class SavedTextDb private constructor(context: Context) :
                 "id TEXT PRIMARY KEY, " +
                 "title TEXT NOT NULL, " +
                 "content TEXT NOT NULL, " +
-                "createdAt INTEGER NOT NULL)"
+                "createdAt INTEGER NOT NULL, " +
+                "archived INTEGER NOT NULL DEFAULT 0)"
         )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS saved_texts")
-        onCreate(db)
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE saved_texts ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
+        }
     }
 
     fun insert(item: SavedText) {
@@ -44,28 +46,47 @@ class SavedTextDb private constructor(context: Context) :
             put("title", item.title)
             put("content", item.content)
             put("createdAt", item.createdAt)
+            put("archived", if (item.archived) 1 else 0)
         }
         writableDatabase.insertWithOnConflict("saved_texts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
-    fun getAll(): List<SavedText> {
+    fun getAll(archived: Boolean): List<SavedText> {
         val list = ArrayList<SavedText>()
         readableDatabase.query(
-            "saved_texts", null, null, null, null, null, "createdAt ASC"
+            "saved_texts", null, "archived = ?", arrayOf(if (archived) "1" else "0"),
+            null, null, "createdAt ASC"
         ).use { c ->
             val idIdx = c.getColumnIndexOrThrow("id")
             val tIdx = c.getColumnIndexOrThrow("title")
             val cIdx = c.getColumnIndexOrThrow("content")
             val crIdx = c.getColumnIndexOrThrow("createdAt")
+            val aIdx = c.getColumnIndexOrThrow("archived")
             while (c.moveToNext()) {
-                list.add(SavedText(c.getString(tIdx), c.getString(cIdx), c.getLong(crIdx), c.getString(idIdx)))
+                list.add(
+                    SavedText(
+                        c.getString(tIdx), c.getString(cIdx), c.getLong(crIdx),
+                        c.getString(idIdx), c.getInt(aIdx) != 0
+                    )
+                )
             }
         }
         return list
     }
 
-    fun delete(id: String) {
-        writableDatabase.delete("saved_texts", "id = ?", arrayOf(id))
+    fun setArchived(ids: Collection<String>, archived: Boolean) {
+        if (ids.isEmpty()) return
+        val cv = ContentValues().apply { put("archived", if (archived) 1 else 0) }
+        val placeholders = ids.joinToString(",") { "?" }
+        writableDatabase.update(
+            "saved_texts", cv, "id IN ($placeholders)", ids.toTypedArray()
+        )
+    }
+
+    fun delete(ids: Collection<String>) {
+        if (ids.isEmpty()) return
+        val placeholders = ids.joinToString(",") { "?" }
+        writableDatabase.delete("saved_texts", "id IN ($placeholders)", ids.toTypedArray())
     }
 
     fun count(): Int {

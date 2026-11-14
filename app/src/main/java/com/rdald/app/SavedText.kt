@@ -9,5 +9,6 @@ data class SavedText(
     val title: String,
     val content: String,
     val createdAt: Long,
-    val id: String = UUID.randomUUID().toString()
+    val id: String = UUID.randomUUID().toString(),
+    val archived: Boolean = false
 ) : Parcelable

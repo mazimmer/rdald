@@ -23,6 +23,7 @@ import com.rdald.app.service.DownloadService
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val adapter = SavedTextAdapter()
+    private var showArchive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +31,62 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
+        setupTabs()
         setupRecyclerView()
+        setupActionBar()
         setupFab()
         requestNotificationPermission()
         seedIfEmpty()
         handleIntent(intent)
         loadTexts()
+    }
+
+    private fun setupTabs() {
+        binding.tabs.addTab(binding.tabs.newTab().setText(R.string.inbox))
+        binding.tabs.addTab(binding.tabs.newTab().setText(R.string.archive))
+        binding.tabs.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
+                showArchive = tab.position == 1
+                adapter.clearSelection()
+                loadTexts()
+                updateActionBar()
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
+    }
+
+    private fun setupActionBar() {
+        adapter.onSelectionChanged = { updateActionBar() }
+        binding.btnArchive.setOnClickListener { archiveSelected() }
+        binding.btnDelete.setOnClickListener { deleteSelected() }
+        updateActionBar()
+    }
+
+    private fun updateActionBar() {
+        val n = adapter.selectedCount
+        binding.actionBar.visibility = if (n > 0) android.view.View.VISIBLE else android.view.View.GONE
+        // "Archive" only makes sense in the Inbox; in the Archive tab you can only delete.
+        binding.btnArchive.visibility = if (showArchive) android.view.View.GONE else android.view.View.VISIBLE
+        if (n > 0) binding.btnDelete.text = "Delete ($n)" else binding.btnDelete.text = getString(R.string.delete)
+    }
+
+    private fun archiveSelected() {
+        val ids = adapter.selectedItems().map { it.id }
+        if (ids.isEmpty()) return
+        SavedTextDb.get(this).setArchived(ids, true)
+        adapter.clearSelection()
+        loadTexts()
+        Toast.makeText(this, "Moved to archive", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun deleteSelected() {
+        val ids = adapter.selectedItems().map { it.id }
+        if (ids.isEmpty()) return
+        SavedTextDb.get(this).delete(ids)
+        adapter.clearSelection()
+        loadTexts()
+        Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
     }
 
     private val refreshReceiver = object : BroadcastReceiver() {
@@ -69,7 +120,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadTexts() {
-        adapter.submitList(SavedTextDb.get(this).getAll())
+        adapter.submitList(SavedTextDb.get(this).getAll(showArchive))
     }
 
     private fun startDownload(url: String) {
