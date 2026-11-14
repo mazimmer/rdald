@@ -94,6 +94,8 @@ class ReaderActivity : AppCompatActivity() {
             action = PlaybackService.ACTION_LOAD_TEXT
             putExtra(PlaybackService.EXTRA_TEXT, st.content)
             putExtra(PlaybackService.EXTRA_TITLE, st.title)
+            putExtra(PlaybackService.EXTRA_ID, st.id)
+            putExtra(PlaybackService.EXTRA_PROGRESS, st.progress)
         }
         startService(i)
     }

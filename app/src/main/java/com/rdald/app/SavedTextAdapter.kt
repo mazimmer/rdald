@@ -63,10 +63,23 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
         fun bind(item: SavedText) {
             binding.tvTitle.text = item.title
             binding.tvPreview.text = item.content.take(100).replace("\n", " ") + "..."
-            binding.tvDate.text = android.text.format.DateUtils.formatDateTime(
+            val dateStr = android.text.format.DateUtils.formatDateTime(
                 itemView.context, item.createdAt,
                 android.text.format.DateUtils.FORMAT_SHOW_DATE or android.text.format.DateUtils.FORMAT_SHOW_TIME
             )
+            val rate = itemView.context
+                .getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                .getInt("speech_rate", 100) / 100f
+            val words = item.content.trim().split(Regex("\\s+")).count { it.isNotEmpty() }
+            val totalSec = (words / (180.0 * rate.coerceAtLeast(0.5f)) * 60.0).toInt()
+            val totalMin = kotlin.math.ceil(totalSec / 60.0).toInt().coerceAtLeast(1)
+            binding.tvDate.text = if (item.progress in 1..99) {
+                val remSec = totalSec * (100 - item.progress) / 100
+                val remMin = kotlin.math.ceil(remSec / 60.0).toInt().coerceAtLeast(1)
+                "$dateStr · ${item.progress}% · ~$totalMin min (~$remMin min left)"
+            } else {
+                "$dateStr · ~$totalMin min"
+            }
             val selected = selectedIds.contains(item.id)
             binding.root.setCardBackgroundColor(if (selected) COLOR_SELECTED else COLOR_NORMAL)
             binding.root.setOnClickListener {

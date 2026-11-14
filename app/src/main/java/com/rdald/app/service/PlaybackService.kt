@@ -22,6 +22,8 @@ class PlaybackService : MediaLibraryService() {
         const val ACTION_LOAD_TEXT = "com.rdald.app.action.LOAD_TEXT"
         const val EXTRA_TEXT = "com.rdald.app.extra.TEXT"
         const val EXTRA_TITLE = "com.rdald.app.extra.TITLE"
+        const val EXTRA_ID = "com.rdald.app.extra.ID"
+        const val EXTRA_PROGRESS = "com.rdald.app.extra.PROGRESS"
     }
 
     private var mediaSession: MediaLibrarySession? = null
@@ -73,7 +75,9 @@ class PlaybackService : MediaLibraryService() {
             ACTION_LOAD_TEXT -> {
                 val text = intent.getStringExtra(EXTRA_TEXT) ?: ""
                 val title = intent.getStringExtra(EXTRA_TITLE) ?: "RdAld"
-                player?.playText(title, text)
+                val id = intent.getStringExtra(EXTRA_ID) ?: ""
+                val progress = intent.getIntExtra(EXTRA_PROGRESS, 0)
+                player?.playText(title, text, id, progress, announceTime = true)
                 return START_STICKY
             }
         }

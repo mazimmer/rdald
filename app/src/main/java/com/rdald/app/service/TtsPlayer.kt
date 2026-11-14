@@ -18,6 +18,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.rdald.app.data.SavedTextDb
 import java.io.File
 import java.util.Locale
 
@@ -68,12 +69,28 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var pendingIndex: Int? = null
     private var pendingPlayTitle: String? = null
     private var pendingPlayText: String? = null
+    private var pendingPlayItemId: String? = null
+    private var pendingPlayPercent: Int = 0
+    private var pendingPlayAnnounce: Boolean = true
     private var synthId: String? = null
 
     private var mediaPlayer: MediaPlayer? = null
     private var preparedIndex = -1
     private val requestedSynth = HashSet<Int>()
     private var currentVoiceName: String = "default"
+
+    private var currentItemId: String? = null
+    private var currentTotalSeconds: Int = 0
+    private var currentStartPercent: Int = 0
+
+    private var itemVoice: android.speech.tts.Voice? = null
+    private var itemVoiceName: String = "default"
+    private var itemLangBase: String = "en"
+
+    private var announcePlayer: MediaPlayer? = null
+    private var announceSynthId: String? = null
+    private var announceFile: File? = null
+    private var announceDone: (() -> Unit)? = null
 
     private val audioManager: AudioManager? =
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -99,9 +116,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 val pt = pendingPlayText
                 if (pt != null) {
                     val tt = pendingPlayTitle ?: "RdAld"
+                    val pid = pendingPlayItemId ?: ""
+                    val ppct = pendingPlayPercent
+                    val pann = pendingPlayAnnounce
                     pendingPlayText = null
                     pendingPlayTitle = null
-                    playText(tt, pt)
+                    pendingPlayItemId = null
+                    playText(tt, pt, pid, ppct, pann)
                 }
             } else {
                 Log.e(TAG, "TTS init failed: $status")
@@ -116,44 +137,101 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         tts?.setPitch(pitch)
     }
 
-    fun playText(newTitle: String, text: String) {
+    fun playText(
+        newTitle: String,
+        text: String,
+        itemId: String = "",
+        startPercent: Int = 0,
+        announceTime: Boolean = true
+    ) {
         mainHandler.post {
             if (!ttsReady) {
-                // TTS engine not initialized yet; start once it is (so the language voice applies).
                 pendingPlayTitle = newTitle
                 pendingPlayText = text
+                pendingPlayItemId = itemId
+                pendingPlayPercent = startPercent
+                pendingPlayAnnounce = announceTime
                 return@post
             }
             pendingPlayTitle = null
             pendingPlayText = null
-            // Refresh speech settings so changes made in Settings apply to this item.
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
-            // Detect the text language and pick a random fitting voice for THIS item.
-            val langTag = detectLanguage(text)
-            val base = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
-            val voice = pickVoice(base)
-            if (voice != null) {
-                tts?.voice = voice
-                currentVoiceName = voice.name
-            } else {
-                tts?.language = Locale(base)
-                currentVoiceName = base
-            }
-            Log.i(TAG, "detected language=$langTag base=$base voice=$currentVoiceName snippet=${text.take(80).replace("\n", " ")}")
-            tts?.setSpeechRate(speechRate)
-            tts?.setPitch(speechPitch)
             title = newTitle.ifBlank { "RdAld" }
             sentences = text.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
-            index = 0
+            currentItemId = itemId.ifBlank { null }
+            currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
             playlist = buildPlaylist()
             playbackState = if (sentences.isEmpty()) Player.STATE_IDLE else Player.STATE_READY
             playWhenReady = true
             requestAudioFocus()
-            if (sentences.isNotEmpty()) speakAt(0)
+
+            currentTotalSeconds = estimateSeconds(wordCount(text))
+            val startIndex = if (currentStartPercent in 1..99 && sentences.isNotEmpty())
+                (currentStartPercent * sentences.size / 100).coerceIn(0, sentences.size - 1) else 0
+            index = startIndex
+            persistProgress()
+
+            val langTag = detectLanguage(text)
+            itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
+            itemVoice = pickVoice(itemLangBase)
+            itemVoiceName = itemVoice?.name ?: itemLangBase
+            Log.i(TAG, "detected language=$langTag base=$itemLangBase voice=$itemVoiceName snippet=${text.take(60).replace("\n", " ")}")
+
+            if (sentences.isEmpty()) {
+                playWhenReady = false
+                playbackState = Player.STATE_ENDED
+                invalidateState()
+                return@post
+            }
+
+            val remainingSec = currentTotalSeconds * (100 - currentStartPercent) / 100
+            val shouldAnnounce = announceTime && remainingSec > 300
+            if (shouldAnnounce) {
+                val mins = (remainingSec + 59) / 60
+                val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
+                else "The item time is $mins minutes."
+                announce(msg) { applyItemVoiceAndSpeak(startIndex) }
+            } else {
+                applyItemVoiceAndSpeak(startIndex)
+            }
             invalidateState()
+        }
+    }
+
+    private fun applyItemVoiceAndSpeak(start: Int) {
+        val v = itemVoice
+        if (v != null) {
+            tts?.voice = v
+            currentVoiceName = itemVoiceName
+        } else {
+            tts?.language = Locale(itemLangBase)
+            currentVoiceName = itemLangBase
+        }
+        tts?.setSpeechRate(speechRate)
+        tts?.setPitch(speechPitch)
+        if (playWhenReady) speakAt(start)
+    }
+
+    private fun wordCount(text: String): Int =
+        text.trim().split(Regex("\\s+")).count { it.isNotEmpty() }
+
+    private fun estimateSeconds(words: Int): Int {
+        val wpm = 180.0 * speechRate.coerceAtLeast(0.5f)
+        return Math.max(1, (words / wpm * 60.0).toInt())
+    }
+
+    private fun persistProgress() {
+        val id = currentItemId ?: return
+        if (sentences.isEmpty()) return
+        val pct = (index * 100 / sentences.size).coerceIn(0, 100)
+        currentStartPercent = pct
+        try {
+            SavedTextDb.get(context).setProgress(id, pct)
+        } catch (e: Exception) {
+            Log.w(TAG, "setProgress failed: ${e.message}")
         }
     }
 
@@ -262,6 +340,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
         index = i.coerceIn(0, sentences.size - 1)
         playbackState = Player.STATE_READY
+        persistProgress()
         val sentence = sentences[index]
         Log.i(TAG, "speakAt index=$index pwr=$playWhenReady ttsReady=$ttsReady")
         val f = fileFor(sentence)
@@ -306,6 +385,15 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private fun onSynthDone(id: String?) {
         mainHandler.post {
+            if (id != null && id == announceSynthId) {
+                announceSynthId = null
+                val f = announceFile
+                val cb = announceDone
+                announceFile = null
+                announceDone = null
+                if (f != null && f.exists() && f.length() > 0) playAnnouncement(f, cb) else cb?.invoke()
+                return@post
+            }
             if (id != synthId) return@post
             if (!playWhenReady) return@post
             if (sentences.isEmpty()) return@post
@@ -345,11 +433,98 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             if (index + 1 < sentences.size) {
                 index++
                 speakAt(index)
+                invalidateState()
             } else {
+                onItemFinished()
+            }
+        }
+    }
+
+    /** Current item finished: archive it, then continue with the next inbox item (or announce end). */
+    private fun onItemFinished() {
+        val id = currentItemId
+        if (id != null) {
+            try {
+                SavedTextDb.get(context).setProgress(id, 100)
+                SavedTextDb.get(context).setArchived(listOf(id), true)
+            } catch (e: Exception) {
+                Log.w(TAG, "finish persist failed: ${e.message}")
+            }
+        }
+        val next = try {
+            SavedTextDb.get(context).getAll(false).firstOrNull { it.id != id }
+        } catch (e: Exception) {
+            null
+        }
+        if (next != null) {
+            announce("Continuing with the next item.") {
+                mainHandler.postDelayed({
+                    playText(next.title, next.content, next.id, 0, announceTime = false)
+                }, 3000)
+            }
+            playbackState = Player.STATE_READY
+        } else {
+            announce("No more items in the inbox.") {
                 playWhenReady = false
                 playbackState = Player.STATE_ENDED
+                invalidateState()
             }
-            invalidateState()
+            playbackState = Player.STATE_READY
+        }
+        invalidateState()
+    }
+
+    /** Speak [text] in an explicit English voice (for app announcements), then run [onDone]. */
+    private fun announce(text: String, onDone: () -> Unit) {
+        if (!ttsReady) {
+            onDone()
+            return
+        }
+        val en = pickVoice("en")
+        if (en != null) tts?.voice = en else tts?.language = Locale.ENGLISH
+        tts?.setSpeechRate(1.0f)
+        tts?.setPitch(1.0f)
+        Log.i(TAG, "announce: $text")
+        val vt = (en?.name ?: "en").replace(Regex("[^A-Za-z0-9]"), "_")
+        val f = File(context.cacheDir, "ann_" + Math.abs(text.hashCode()) + "_" + vt + ".wav")
+        if (f.exists() && f.length() > 0) {
+            playAnnouncement(f, onDone)
+            return
+        }
+        announceFile = f
+        announceDone = onDone
+        val uid = "ann_" + java.util.UUID.randomUUID().toString()
+        announceSynthId = uid
+        val params = Bundle().apply { putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uid) }
+        val r = tts?.synthesizeToFile(text, params, f, uid)
+        if (r != TextToSpeech.SUCCESS) {
+            announceSynthId = null
+            announceFile = null
+            val cb = announceDone
+            announceDone = null
+            cb?.invoke()
+        }
+    }
+
+    private fun playAnnouncement(f: File, onDone: (() -> Unit)?) {
+        try {
+            if (announcePlayer == null) announcePlayer = MediaPlayer()
+            val mp = announcePlayer!!
+            mp.reset()
+            mp.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+            )
+            mp.setDataSource(f.absolutePath)
+            mp.setOnCompletionListener { onDone?.invoke() }
+            mp.setOnErrorListener { _, _, _ -> onDone?.invoke(); true }
+            mp.prepare()
+            mp.start()
+        } catch (e: Exception) {
+            Log.e(TAG, "playAnnouncement failed", e)
+            onDone?.invoke()
         }
     }
 
@@ -444,6 +619,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     override fun handleRelease(): ListenableFuture<*> {
         mediaPlayer?.release()
         mediaPlayer = null
+        announcePlayer?.release()
+        announcePlayer = null
         tts?.stop()
         tts?.shutdown()
         tts = null
