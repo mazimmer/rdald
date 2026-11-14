@@ -113,7 +113,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var hasAudioFocus = false
 
     init {
-        tts = TextToSpeech(context) { status ->
+        val enginePkg = com.rdald.app.TtsEngines.resolve(context)
+        tts = TextToSpeech(context, TextToSpeech.OnInitListener { status ->
             if (status == TextToSpeech.SUCCESS) {
                 ttsReady = true
                 tts?.language = Locale.getDefault()
@@ -142,7 +143,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             } else {
                 Log.e(TAG, "TTS init failed: $status")
             }
-        }
+        }, enginePkg)
     }
 
     fun setTtsSettings(rate: Float, pitch: Float) {

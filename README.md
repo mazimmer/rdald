@@ -47,6 +47,10 @@ headsets**.
   dash = some, empty = none). Everything is **selected by default**; newly installed voices are
   selected automatically (we persist only the *deselected* set). Tapping a voice **plays a short
   sample** in that voice (localized per language).
+- **TTS engine switch**: voices are engine-specific, so the Voices screen has **⋮ → Change engine…**
+  to pick among all installed TTS engines (defaults to the system default). The chosen engine is
+  saved (`tts_engine`) and used for playback. A `<queries>` entry for `TTS_SERVICE` lets the app
+  discover other engines on Android 11+.
 - **Speech rate / pitch** settings applied per item.
 - Background playback via a foreground `MediaLibraryService`.
 - **Reads the item title first** (in the item's own voice), then the optional time announcement,
@@ -231,6 +235,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **0.7.1** — voice picker became a **collapsible tree** (folded by default) with a master
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
+- **0.7.2** — added an **in-app TTS engine switcher** (Voices ⋮ → Change engine…), since voices
+  are per-engine; defaults to the system default and is used by playback.
 
 ## Known limitations / next steps
 
