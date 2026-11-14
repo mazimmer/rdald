@@ -59,14 +59,8 @@ class ReaderActivity : AppCompatActivity() {
 
     private fun setupControls() {
         binding.btnPlayPause.setOnClickListener { togglePlayback() }
-        binding.btnForward.setOnClickListener {
-            val c = controller ?: return@setOnClickListener
-            c.seekTo((c.currentPosition + 1000L).coerceAtMost(c.duration.coerceAtLeast(0L)))
-        }
-        binding.btnRewind.setOnClickListener {
-            val c = controller ?: return@setOnClickListener
-            c.seekTo((c.currentPosition - 1000L).coerceAtLeast(0L))
-        }
+        binding.btnForward.setOnClickListener { controller?.seekForward() }
+        binding.btnRewind.setOnClickListener { controller?.seekBack() }
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
