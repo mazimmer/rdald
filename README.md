@@ -39,7 +39,12 @@ headsets**.
 **Playback**
 - Sentence-by-sentence TTS with **pause/stop/resume**, **forward/back** (±1 sentence).
 - **Media controls**: notification + **Bluetooth AVRCP headsets** + watches (via media3).
-- **Language detection** + **random fitting voice** per item (offline voices preferred).
+- **Language detection** + **random fitting voice** per item (offline voices preferred), chosen
+  only from the user's **selected voices**.
+- **Voice selection** (`Settings → Voices`): every installed voice is listed, grouped by
+  **language → country/variant**, each with a checkbox. Everything is **selected by default**;
+  newly installed voices are selected automatically (we persist only the *deselected* set).
+  Toolbar actions: **Select all / Select none**.
 - **Speech rate / pitch** settings applied per item.
 - Background playback via a foreground `MediaLibraryService`.
 - **Reads the item title first** (in the item's own voice), then the optional time announcement,
@@ -218,6 +223,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
   settings are preserved.
 - **0.6.1** — redrew the icon to be **abstract rather than chat-like**: a solid text block with
   three waves radiating to the right (“text read aloud”), paper background/black glyph for e-ink.
+- **0.7.0** — **voice picker**: `Settings → Voices` lists all installed voices grouped by
+  language → country/variant with checkboxes (all selected by default; storing the deselected
+  set means new voices are auto-selected). Random voice selection now uses only selected voices.
 
 ## Known limitations / next steps
 

@@ -45,6 +45,7 @@
 
         <activity android:name=".ReaderActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".VoicesActivity" android:exported="false" />
 
         <!-- media3 MediaSessionService: makes NaraTTS a proper media app so the system
              routes Bluetooth AVRCP / media buttons here and shows it in media controls. -->

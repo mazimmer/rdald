@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="Playback">
-        <ListPreference
-            android:key="tts_voice"
-            android:title="TTS Voice"
-            android:summary="Select the text-to-speech voice"
-            android:entries="@array/tts_voice_names"
-            android:entryValues="@array/tts_voice_values"
-            android:defaultValue="default" />
+        <Preference
+            android:key="voices"
+            android:title="Voices"
+            android:summary="Choose which voices may be used (all selected by default)" />
         <SeekBarPreference
             android:key="speech_rate"
             android:title="Speech Rate"

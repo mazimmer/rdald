@@ -392,9 +392,20 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         val langs = voices.map { it.locale.language }.distinct().sorted()
         Log.i(TAG, "pickVoice base=$base total=${voices.size} matching=${matching.size} langs=$langs")
         if (matching.isEmpty()) return null
-        val local = matching.filter { !it.isNetworkConnectionRequired }
-        val chosen = (local.ifEmpty { matching }).randomOrNull()
-        Log.i(TAG, "pickVoice chose=${chosen?.name} locale=${chosen?.locale}")
+        // Respect the user's selected-voice set. We store the *deselected* names so any voice
+        // is selected by default, including voices that are installed later.
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val deselected = prefs.getStringSet("deselected_voices", emptySet()) ?: emptySet()
+        val allowed = matching.filter { it.name !in deselected }.ifEmpty {
+            // User deselected every voice for this language: still speak, using them anyway.
+            matching
+        }
+        val local = allowed.filter { !it.isNetworkConnectionRequired }.ifEmpty { allowed }
+        val chosen = local.randomOrNull()
+        Log.i(
+            TAG,
+            "pickVoice base=$base matching=${matching.size} allowed=${allowed.size} chose=${chosen?.name} locale=${chosen?.locale}"
+        )
         return chosen
     }
 
