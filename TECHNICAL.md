@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.7.5)
+## Features (current, v0.7.7)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,10 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.7** — dragging the **progress slider fully right** finishes the item (100%); the
+  end-of-item jump now **stops the current sentence audio** before continuing.
+- **0.7.6** — forward on the **last paragraph** now ends the item (archives + continues); downloaded
+  articles are screened and exact **duplicate paragraphs/sentences removed**.
 - **0.7.5** — configurable **time-announcement threshold** (default 5 min); tapping the reader
   **title bar opens the original article URL** in the browser (DB schema **v5** adds `sourceUrl`).
 - **0.7.4** — Reader overflow menu **“Deselect current voice”**: removes the active voice from the

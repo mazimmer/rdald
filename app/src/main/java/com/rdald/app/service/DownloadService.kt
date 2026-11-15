@@ -113,7 +113,34 @@ class DownloadService : Service() {
         if (text.isEmpty()) {
             text = Jsoup.parse(html).body()?.text()?.trim().orEmpty()
         }
+        // Extraction sometimes repeats blocks (nested elements etc.); strip duplicates before
+        // storing so the reader doesn't get repeated paragraphs/sentences.
+        text = dedupeText(text)
         return ArticleResult(title, text, baseUrl, html)
+    }
+
+    private fun normalizeText(s: String): String =
+        s.lowercase().replace(Regex("\\s+"), " ").trim()
+
+    /** Remove exact duplicate paragraphs (global) and duplicate sentences within a paragraph. */
+    private fun dedupeText(raw: String): String {
+        val paras = raw.split(Regex("\\n\\s*\\n")).map { it.trim() }.filter { it.isNotBlank() }
+        val seenParas = HashSet<String>()
+        val out = ArrayList<String>()
+        for (p in paras) {
+            val sents = p.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            val seenSents = HashSet<String>()
+            val kept = ArrayList<String>()
+            for (s in sents) {
+                val k = normalizeText(s)
+                if (k.isEmpty() || !seenSents.add(k)) continue
+                kept.add(s)
+            }
+            val para = kept.joinToString(" ").trim()
+            val pk = normalizeText(para)
+            if (pk.isNotEmpty() && seenParas.add(pk)) out.add(para)
+        }
+        return out.joinToString("\n\n")
     }
 
     /**

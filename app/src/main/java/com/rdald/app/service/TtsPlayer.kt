@@ -347,12 +347,24 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         val outSentences = ArrayList<String>()
         val starts = ArrayList<Int>()
         val paraOf = ArrayList<Int>()
+        val seenParas = HashSet<String>()
         var pIndex = 0
         for (para in paragraphs) {
+            val paraKey = normalizeText(para)
+            // Skip exact duplicate paragraphs (whitespace/case-insensitive).
+            if (paraKey.isEmpty() || !seenParas.add(paraKey)) continue
             val sents = para.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
             if (sents.isEmpty()) continue
-            starts.add(outSentences.size)
+            val kept = ArrayList<String>()
+            val seenSents = HashSet<String>()
             for (s in sents) {
+                val key = normalizeText(s)
+                if (key.isEmpty() || !seenSents.add(key)) continue
+                kept.add(s)
+            }
+            if (kept.isEmpty()) continue
+            starts.add(outSentences.size)
+            for (s in kept) {
                 outSentences.add(s)
                 paraOf.add(pIndex)
             }
@@ -365,6 +377,9 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
         return Triple(outSentences, starts, paraOf.toIntArray())
     }
+
+    private fun normalizeText(s: String): String =
+        s.lowercase().replace(Regex("\\s+"), " ").trim()
 
     private fun paragraphIndexOfSentence(i: Int): Int {
         if (paragraphOf.isEmpty()) return 0
@@ -673,6 +688,29 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     /** Current item finished: archive it, then continue with the next inbox item (or announce end). */
+    /** Stop the sentence audio immediately (used when jumping to the very end). */
+    private fun stopMediaPlayback() {
+        try {
+            mediaPlayer?.reset()
+        } catch (_: Exception) {
+        }
+        preparedIndex = -1
+    }
+
+    /**
+     * Jump straight to the end of the current item: stop the current voice, then run the normal
+     * end-of-item flow (persist 100%, archive, announce/continue).
+     */
+    fun finishCurrentItem() {
+        mainHandler.post {
+            if (sentences.isEmpty()) return@post
+            abortAnnouncements()
+            stopMediaPlayback()
+            index = (sentences.size - 1).coerceAtLeast(0)
+            onItemFinished()
+        }
+    }
+
     private fun onItemFinished() {
         val id = currentItemId
         if (id != null) {
@@ -884,6 +922,21 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         // A user seek/tap/jump should abort a still-playing title or time announcement
         // instead of waiting for it (and its follow-up read) to finish.
         abortAnnouncements()
+        val isForward = seekCommand == Player.COMMAND_SEEK_FORWARD ||
+            seekCommand == Player.COMMAND_SEEK_TO_NEXT ||
+            seekCommand == Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
+        if (isForward) {
+            val atLastParagraph = paragraphStarts.isEmpty() ||
+                paragraphIndexOfSentence(index) >= paragraphStarts.size - 1
+            if (atLastParagraph) {
+                // Already on the last paragraph (or a single-paragraph item): jump to the very
+                // end and let the normal end-of-item flow continue (archive + announce next).
+                index = (sentences.size - 1).coerceAtLeast(0)
+                stopMediaPlayback()
+                if (playWhenReady) onItemFinished() else invalidateState()
+                return Futures.immediateVoidFuture()
+            }
+        }
         val target = when (seekCommand) {
             Player.COMMAND_SEEK_FORWARD,
             Player.COMMAND_SEEK_TO_NEXT,

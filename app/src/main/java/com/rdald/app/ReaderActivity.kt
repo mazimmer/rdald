@@ -154,7 +154,20 @@ class ReaderActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 val c = controller ?: return
                 val count = c.mediaItemCount
-                if (count > 0) c.seekTo(count * seekBar.progress / 100, 0L)
+                if (count <= 0) return
+                if (seekBar.progress >= 100) {
+                    // Dragged to the far right: jump to the very end and finish the item.
+                    try {
+                        c.sendCustomCommand(
+                            SessionCommand(PlaybackService.CMD_FINISH_ITEM, Bundle.EMPTY),
+                            Bundle.EMPTY
+                        )
+                    } catch (_: Exception) {
+                    }
+                } else {
+                    val target = (count * seekBar.progress / 100).coerceIn(0, count - 1)
+                    c.seekTo(target, 0L)
+                }
             }
         })
     }

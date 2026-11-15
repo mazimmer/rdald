@@ -29,6 +29,8 @@ class PlaybackService : MediaLibraryService() {
         const val EXTRA_PROGRESS = "com.rdald.app.extra.PROGRESS"
         // Custom session command from the reader UI to swap the current voice.
         const val CMD_DESELECT_VOICE = "com.rdald.app.DESELECT_VOICE"
+        // Custom session command: jump to the very end of the current item and finish it.
+        const val CMD_FINISH_ITEM = "com.rdald.app.FINISH_ITEM"
     }
 
     private var mediaSession: MediaLibrarySession? = null
@@ -65,6 +67,7 @@ class PlaybackService : MediaLibraryService() {
                 // Advertise our custom command so MediaController.sendCustomCommand reaches us.
                 val commands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
                     .add(SessionCommand(CMD_DESELECT_VOICE, Bundle.EMPTY))
+                    .add(SessionCommand(CMD_FINISH_ITEM, Bundle.EMPTY))
                     .build()
                 return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                     .setAvailableSessionCommands(commands)
@@ -79,6 +82,10 @@ class PlaybackService : MediaLibraryService() {
             ): ListenableFuture<SessionResult> {
                 if (customCommand.customAction == CMD_DESELECT_VOICE) {
                     player?.deselectCurrentVoiceAndSwitch()
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+                }
+                if (customCommand.customAction == CMD_FINISH_ITEM) {
+                    player?.finishCurrentItem()
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
                 }
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
