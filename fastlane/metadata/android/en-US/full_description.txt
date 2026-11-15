@@ -1,0 +1,12 @@
+Turn links and text into listenable, read-aloud articles using your device's Text-to-Speech engines.
+
+Share a link or paste text; NaraTTS downloads the article in reader mode, detects the language, and reads it sentence by sentence.
+
+Features:
+* Works with any installed TTS engine and lets you choose which voices may be used (all selected by default), with a short spoken preview.
+* Randomly picks among your selected voices for the detected language.
+* Bluetooth / AVRCP headset controls, media notification and smartwatch controls.
+* Inbox and Archive queue with per-item progress, resume, auto-advance and listening-time estimates.
+* Reader view with tap-to-jump, auto-scroll and a high-contrast current-sentence highlight (e-ink friendly).
+* Optional spoken announcements (title, total/remaining time, next item).
+* No accounts, no tracking, no Google Play Services.

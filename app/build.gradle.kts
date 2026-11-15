@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,12 +23,17 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
         }
+        // F-Droid builds `release` from source and signs it with its own key, so this is
+        // intentionally UNSIGNED. Prepare it with `./gradlew assembleFdroid`.
         release {
             isMinifyEnabled = false
-            // Sign with the debug key so release APKs can update in place over the installed
-            // debug build (same signature) instead of requiring an uninstall that wipes data.
-            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        // Local, installable release signed with the debug key (updates in place, keeps data).
+        create("selfsigned") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
         }
     }
 
@@ -41,6 +48,27 @@ android {
 
     buildFeatures {
         viewBinding = true
+    }
+}
+
+// Prepare an unsigned APK for F-Droid (F-Droid signs it with its own key).
+//   ./gradlew assembleFdroid
+tasks.register("assembleFdroid") {
+    group = "fdroid"
+    description = "Assemble the unsigned release APK for F-Droid and give it a clear name."
+    dependsOn("assembleRelease")
+    doLast {
+        val dir = layout.buildDirectory.dir("outputs/apk/release").get().asFile
+        val files = dir.listFiles() ?: emptyArray()
+        val src = files.firstOrNull { it.isFile && it.name == "app-release-unsigned.apk" }
+            ?: files.firstOrNull { it.isFile && it.name.endsWith(".apk") }
+        if (src != null) {
+            val out = File(dir, "NaraTTS-${android.defaultConfig.versionName}-fdroid-unsigned.apk")
+            src.copyTo(out, overwrite = true)
+            println("F-Droid APK ready: ${out.absolutePath}")
+        } else {
+            println("No release APK found in ${dir.absolutePath}")
+        }
     }
 }
 

@@ -1,0 +1,16 @@
+# Gradle / Android build output
+.gradle/
+build/
+app/build/
+*.iml
+
+# Local machine config (contains SDK path)
+local.properties
+
+# Signing material — never commit
+*.jks
+*.keystore
+release.keystore
+
+# OS/editor cruft
+.DS_Store

@@ -1,0 +1,40 @@
+# Template for the F-Droid data repo (gitlab.com/fdroid/fdroiddata).
+# Copy this file to `metadata/com.rdald.app.yml` in a fork of fdroiddata, edit the
+# placeholders (USER/REPO, License, Author), then open a merge request.
+#
+# Notes:
+# - The repo root IS the Gradle project (no subdirectory), so no `subdir` is needed.
+# - F-Droid builds the *unsigned* `release` variant (`gradle: - yes` -> assembleRelease)
+#   and signs the result with its own key. Do not commit signing keys.
+# - Bump versionName/versionCode in app/build.gradle.kts and F-Droid's AutoUpdate
+#   will pick new tagged releases.
+
+Categories:
+  - Reading
+
+License: GPL-3.0-only
+AuthorName: Your Name
+AuthorEmail: you@example.com
+WebSite: https://github.com/USER/REPO
+SourceCode: https://github.com/USER/REPO
+IssueTracker: https://github.com/USER/REPO/issues
+
+AutoName: NaraTTS
+
+RepoType: git
+Repo: https://github.com/USER/REPO.git
+
+Builds:
+  - versionName: 0.7.5
+    versionCode: 128
+    commit: v0.7.5
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 0.7.5
+CurrentVersionCode: 128
+
+MaintainerNotes: |
+  Unsigned release build; F-Droid signs. Voices/engines are provided by the system.

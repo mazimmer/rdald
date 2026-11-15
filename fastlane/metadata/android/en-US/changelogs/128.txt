@@ -1,0 +1,4 @@
+0.7.5
+- Configurable time-announcement threshold (default 5 min).
+- Tap the reader title bar to open the original article.
+- Store the source URL for downloaded articles.
