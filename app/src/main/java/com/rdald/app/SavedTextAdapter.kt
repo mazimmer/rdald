@@ -114,6 +114,16 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
                 .getBoolean("compact_cards", false)
             binding.tvPreview.visibility = if (compact) View.GONE else View.VISIBLE
             binding.tvDate.visibility = if (compact) View.GONE else View.VISIBLE
+            // Tighten spacing in compact mode to remove excess white space.
+            val density = itemView.resources.displayMetrics.density
+            fun dpx(v: Int) = (v * density + 0.5f).toInt()
+            val pad = dpx(if (compact) 6 else 16)
+            binding.content.setPadding(pad, pad, pad, pad)
+            (binding.root.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                lp.bottomMargin = dpx(if (compact) 3 else 8)
+                binding.root.layoutParams = lp
+            }
+            binding.tvTitle.textSize = if (compact) 15f else 16f
             binding.tvPreview.text = item.content.take(100).replace("\n", " ") + "..."
             val dateStr = android.text.format.DateUtils.formatDateTime(
                 itemView.context, item.createdAt,
