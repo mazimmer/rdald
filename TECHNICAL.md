@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.7.8)
+## Features (current, v0.7.9)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,9 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.9** — **per-sentence language detection**: each sentence's language is detected and a
+  fitting voice chosen; unclear sentences keep the item's default language. The whole item is
+  pre-scanned at load and upcoming sentences are pre-synthesized with their own voice.
 - **0.7.8** — small **version label** beside the app name; article **favicon as notification
   artwork**; optional **compact cards** (title + favicon); lists open scrolled to the newest item.
 - **0.7.7** — dragging the **progress slider fully right** finishes the item (100%); the

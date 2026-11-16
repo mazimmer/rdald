@@ -67,6 +67,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     // paragraph, and the paragraph index that each sentence belongs to.
     private var paragraphStarts: List<Int> = emptyList()
     private var paragraphOf: IntArray = IntArray(0)
+    // Per-sentence detected language and the voice chosen for it. Unclear sentences use the
+    // whole item's language (so a German article with English sentences reads English only where
+    // the sentence is confidently English, German otherwise).
+    private var sentLangBase: Array<String> = emptyArray()
+    private var sentPickedVoice: Array<PickedVoice?> = emptyArray()
+    private var itemPicked: PickedVoice? = null
     private var playlist: List<MediaItemData> = emptyList()
     private var index: Int = 0
     private var playWhenReady: Boolean = false
@@ -286,10 +292,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             val langTag = detectLanguage(text)
             itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
             val picked = pickVoice(itemLangBase)
+            itemPicked = picked
             itemVoice = picked?.voice
             itemEnginePkg = picked?.enginePkg
             itemVoiceName = picked?.voice?.name ?: itemLangBase
             if (picked != null) makeActive(picked.enginePkg)
+            // Detect language per sentence so foreign-language sentences get a fitting voice.
+            buildPerSentenceVoices()
             Log.i(TAG, "detected language=$langTag base=$itemLangBase voice=$itemVoiceName engine=$itemEnginePkg snippet=${text.take(60).replace("\n", " ")}")
 
             if (sentences.isEmpty()) {
@@ -339,7 +348,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     private fun startSpeaking(start: Int) {
-        applyItemVoice()
+        // speakAt() applies the per-paragraph voice before synthesizing.
         if (playWhenReady) speakAt(start)
     }
 
@@ -390,6 +399,99 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private fun normalizeText(s: String): String =
         s.lowercase().replace(Regex("\\s+"), " ").trim()
+
+    /**
+     * Detect each sentence's language and choose a fitting voice. When detection is unclear (or
+     * that language has no usable voice) it falls back to the whole item's language/voice.
+     */
+    private fun buildPerSentenceVoices() {
+        if (sentences.isEmpty()) {
+            sentLangBase = emptyArray()
+            sentPickedVoice = emptyArray()
+            return
+        }
+        val cache = HashMap<String, PickedVoice?>()
+        cache[itemLangBase] = itemPicked
+        fun pickFor(lang: String): PickedVoice? {
+            if (cache.containsKey(lang)) return cache[lang]
+            val p = pickVoice(lang) ?: itemPicked
+            cache[lang] = p
+            return p
+        }
+        val langs = Array(sentences.size) { itemLangBase }
+        val picks = arrayOfNulls<PickedVoice>(sentences.size)
+        for (i in sentences.indices) {
+            val clear = detectSentenceLang(sentences[i])
+            val base = if (clear != null && clear != "und") clear else itemLangBase
+            langs[i] = base
+            picks[i] = pickFor(base)
+        }
+        sentLangBase = langs
+        sentPickedVoice = picks
+        Log.i(
+            TAG,
+            "per-sentence langs=${langs.toList().take(24)} voices=${picks.map { it?.voice?.name }.take(24)}"
+        )
+    }
+
+    /** Return the language of [text] only when confident; null = "unclear, use item default". */
+    private fun detectSentenceLang(text: String): String? {
+        val sample = text.trim()
+        if (sample.length < 12) return null
+        val words = sample.lowercase().split(Regex("[^\\p{L}]+")).filter { it.length >= 2 }
+        if (words.size < 4) return null
+        var bestLang = ""
+        var bestScore = 0
+        for ((lang, set) in LANG_STOPWORDS) {
+            var s = 0
+            for (w in words) if (set.contains(w)) s++
+            if (s > bestScore) {
+                bestScore = s
+                bestLang = lang
+            }
+        }
+        val ratio = bestScore.toDouble() / words.size
+        if (bestLang.isNotEmpty() && bestScore >= 2 && ratio >= 0.06) return bestLang
+        // Only consult the platform classifier for longer sentences (short ones are unreliable).
+        if (sample.length < 30) return null
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val tcm = context.getSystemService(
+                    android.view.textclassifier.TextClassificationManager::class.java
+                )
+                val req = android.view.textclassifier.TextLanguage.Request.Builder(sample).build()
+                val lang = tcm?.textClassifier?.detectLanguage(req)?.id
+                val base = if (!lang.isNullOrBlank()) Locale.forLanguageTag(lang).language else ""
+                if (base.isNotBlank() && base != "und") base else null
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /** Apply the voice chosen for sentence [i]. */
+    private fun applyVoiceForSentence(i: Int) {
+        val picked = sentPickedVoice.getOrNull(i)
+        val eng = picked?.enginePkg ?: itemEnginePkg
+        val v = picked?.voice ?: itemVoice
+        val name = picked?.voice?.name ?: itemVoiceName
+        val lang = sentLangBase.getOrNull(i) ?: itemLangBase
+        makeActive(eng)
+        try {
+            if (v != null) {
+                tts?.voice = v
+                currentVoiceName = "${eng ?: DEFAULT_ENGINE_KEY}|$name"
+            } else {
+                tts?.language = Locale(lang)
+                currentVoiceName = lang
+            }
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+        } catch (_: Exception) {
+        }
+    }
 
     private fun paragraphIndexOfSentence(i: Int): Int {
         if (paragraphOf.isEmpty()) return 0
@@ -544,29 +646,34 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     fun deselectCurrentVoiceAndSwitch() {
         mainHandler.post {
             if (sentences.isEmpty()) return@post
-            val curPkg = itemEnginePkg
-            val curName = itemVoiceName
-            val curKey = if (curPkg != null && curName.isNotBlank() && curName != itemLangBase) {
-                "$curPkg|$curName"
-            } else {
-                null
-            }
+            val lang = sentLangBase.getOrNull(index) ?: itemLangBase
+            val cur = sentPickedVoice.getOrNull(index)
+            val curPkg = cur?.enginePkg ?: itemEnginePkg
+            val curName = cur?.voice?.name ?: itemVoiceName
+            val curKey = if (curPkg != null && curName.isNotBlank()) "$curPkg|$curName" else null
             if (curKey != null) {
                 val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 val ds = HashSet(prefs.getStringSet("deselected_voices", emptySet()) ?: emptySet())
                 ds.add(curKey)
                 prefs.edit().putStringSet("deselected_voices", ds).apply()
             }
-            val next = pickVoice(itemLangBase, avoidKey = curKey)
+            val next = pickVoice(lang, avoidKey = curKey)
+                ?: pickVoice(itemLangBase, avoidKey = curKey)
             if (next == null) {
                 Log.w(TAG, "deselectCurrentVoiceAndSwitch: no alternative voice")
                 return@post
             }
-            itemVoice = next.voice
-            itemEnginePkg = next.enginePkg
-            itemVoiceName = next.voice.name
+            // Use the new voice for all sentences of the same language.
+            for (i in sentPickedVoice.indices) {
+                if (sentLangBase.getOrNull(i) == lang) sentPickedVoice[i] = next
+            }
+            if (lang == itemLangBase) {
+                itemPicked = next
+                itemVoice = next.voice
+                itemEnginePkg = next.enginePkg
+                itemVoiceName = next.voice.name
+            }
             makeActive(next.enginePkg)
-            applyItemVoice()
             requestedSynth.clear()
             // Re-read the current sentence from its start with the new voice.
             if (playWhenReady) speakAt(index) else invalidateState()
@@ -600,6 +707,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         index = i.coerceIn(0, sentences.size - 1)
         playbackState = Player.STATE_READY
         persistProgress()
+        applyVoiceForSentence(index)
         val sentence = sentences[index]
         Log.i(TAG, "speakAt index=$index pwr=$playWhenReady ttsReady=$ttsReady")
         val f = fileFor(sentence)
@@ -630,16 +738,31 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private fun ensureSynth(i: Int) {
         if (i < 0 || i >= sentences.size || !ttsReady) return
         if (requestedSynth.contains(i)) return
+        // Render upcoming sentence with the voice it will actually use, so a foreign-language
+        // sentence is already synthesized before playback reaches it (no mid-read hitch).
+        val picked = sentPickedVoice.getOrNull(i)
+        val engKey = picked?.enginePkg ?: (itemEnginePkg ?: DEFAULT_ENGINE_KEY)
+        val inst = ttsInstances[engKey]
+        if (inst == null || engKey !in readyEngines) return
+        val cacheVoice = "${engKey}|${picked?.voice?.name ?: itemVoiceName}"
+        val savedVoice = currentVoiceName
+        currentVoiceName = cacheVoice
         val f = fileFor(sentences[i])
+        currentVoiceName = savedVoice
         if (f.exists() && f.length() > 0) return
         requestedSynth.add(i)
-        tts?.setSpeechRate(speechRate)
-        tts?.setPitch(speechPitch)
-        val uid = "pre_" + java.util.UUID.randomUUID().toString()
-        val params = Bundle().apply {
-            putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uid)
+        try {
+            if (picked != null) inst.voice = picked.voice
+            inst.setSpeechRate(speechRate)
+            inst.setPitch(speechPitch)
+            val uid = "pre_" + java.util.UUID.randomUUID().toString()
+            val params = Bundle().apply {
+                putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uid)
+            }
+            inst.synthesizeToFile(sentences[i], params, f, uid)
+        } catch (_: Exception) {
+            requestedSynth.remove(i)
         }
-        tts?.synthesizeToFile(sentences[i], params, f, uid)
     }
 
     private fun onSynthDone(id: String?) {
