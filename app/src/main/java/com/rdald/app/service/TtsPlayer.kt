@@ -106,6 +106,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private var currentVoiceName: String = "default"
 
     private var currentItemId: String? = null
+    private var artworkUri: android.net.Uri? = null
     private var currentTotalSeconds: Int = 0
     private var currentStartPercent: Int = 0
 
@@ -261,6 +262,15 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             paragraphOf = parts.third
             currentItemId = itemId.ifBlank { null }
             activeItemId = currentItemId
+            // Feed the article favicon to the media notification (shown as the large icon).
+            artworkUri = try {
+                currentItemId?.let { SavedTextDb.get(context).getById(it)?.iconPath }
+                    ?.let { java.io.File(it) }
+                    ?.takeIf { it.exists() }
+                    ?.let { android.net.Uri.fromFile(it) }
+            } catch (_: Exception) {
+                null
+            }
             currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
             currentTotalSeconds = estimateSeconds(wordCount(text))
@@ -567,8 +577,10 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     private fun buildPlaylist(): List<MediaItemData> {
         if (sentences.isEmpty()) return emptyList()
         return sentences.mapIndexed { i, _ ->
-            val md = MediaMetadata.Builder()
-                .setTitle(title).setIsPlayable(true).setIsBrowsable(false).build()
+            val mdBuilder = MediaMetadata.Builder()
+                .setTitle(title).setIsPlayable(true).setIsBrowsable(false)
+            artworkUri?.let { mdBuilder.setArtworkUri(it) }
+            val md = mdBuilder.build()
             val mi = MediaItem.Builder().setMediaId("s$i").setMediaMetadata(md).build()
             MediaItemData.Builder("s$i")
                 .setMediaItem(mi).setMediaMetadata(md)

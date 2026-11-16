@@ -109,6 +109,11 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
         fun bind(item: SavedText) {
             FaviconLoader.load(item.iconPath, binding.ivIcon)
             binding.tvTitle.text = item.title
+            val compact = itemView.context
+                .getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                .getBoolean("compact_cards", false)
+            binding.tvPreview.visibility = if (compact) View.GONE else View.VISIBLE
+            binding.tvDate.visibility = if (compact) View.GONE else View.VISIBLE
             binding.tvPreview.text = item.content.take(100).replace("\n", " ") + "..."
             val dateStr = android.text.format.DateUtils.formatDateTime(
                 itemView.context, item.createdAt,

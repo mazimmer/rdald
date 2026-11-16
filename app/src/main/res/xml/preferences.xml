@@ -27,6 +27,13 @@
             android:max="60"
             android:defaultValue="5" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Appearance">
+        <SwitchPreferenceCompat
+            android:key="compact_cards"
+            android:title="Compact cards"
+            android:summary="Show only titles and favicons in the lists"
+            android:defaultValue="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="Forward/Rewind">
         <SeekBarPreference
             android:key="forward_interval"

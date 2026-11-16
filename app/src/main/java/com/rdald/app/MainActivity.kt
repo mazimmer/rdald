@@ -8,6 +8,9 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
@@ -24,6 +27,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val adapter = SavedTextAdapter()
     private var showArchive = false
+    // When true, the next list load scrolls to the newest item at the bottom.
+    private var scrollToBottomPending = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +53,7 @@ class MainActivity : AppCompatActivity() {
             override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
                 showArchive = tab.position == 1
                 adapter.clearSelection()
+                scrollToBottomPending = true
                 loadTexts()
                 updateActionBar()
             }
@@ -121,7 +127,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTexts() {
         val items = SavedTextDb.get(this).getAll(showArchive)
-        adapter.submitList(items)
+        adapter.submitList(items) {
+            if (scrollToBottomPending && items.isNotEmpty()) {
+                binding.recyclerView.scrollToPosition(items.size - 1)
+            }
+            scrollToBottomPending = false
+        }
         updateSummary(items)
     }
 
@@ -176,6 +187,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
+        // Title with a very small version suffix, e.g. "NaraTTS 0.7.8".
+        val base = getString(R.string.app_name)
+        val version = try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: ""
+        } catch (_: Exception) {
+            ""
+        }
+        if (version.isNotBlank()) {
+            val title = SpannableString("$base $version")
+            title.setSpan(
+                RelativeSizeSpan(0.6f),
+                base.length, title.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            supportActionBar?.title = title
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
