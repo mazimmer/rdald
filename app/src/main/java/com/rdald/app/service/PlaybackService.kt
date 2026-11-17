@@ -3,6 +3,8 @@ import com.rdald.app.R
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
+import androidx.core.content.IntentCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -58,6 +60,36 @@ class PlaybackService : MediaLibraryService() {
                 return Futures.immediateFuture(
                     MediaSession.MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs)
                 )
+            }
+
+            override fun onMediaButtonEvent(
+                session: MediaSession,
+                controllerInfo: MediaSession.ControllerInfo,
+                intent: Intent
+            ): Boolean {
+                // Hardware / Bluetooth key events only (in-app buttons don't come through here).
+                val skipArticles = getSharedPreferences("settings", MODE_PRIVATE)
+                    .getBoolean("bt_skip_articles", false)
+                if (skipArticles) {
+                    val event = IntentCompat.getParcelableExtra(
+                        intent, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java
+                    )
+                    if (event != null && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                        when (event.keyCode) {
+                            KeyEvent.KEYCODE_MEDIA_NEXT,
+                            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                                player?.skipToNextArticle()
+                                return true
+                            }
+                            KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+                            KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                                player?.skipToPreviousArticle()
+                                return true
+                            }
+                        }
+                    }
+                }
+                return super.onMediaButtonEvent(session, controllerInfo, intent)
             }
 
             override fun onConnect(

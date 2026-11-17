@@ -1,0 +1,3 @@
+0.8.1
+- Fix: the “Bluetooth forward/rewind skips articles” option now actually works (handled via
+  hardware media-button events).
