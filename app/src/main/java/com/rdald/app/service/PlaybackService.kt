@@ -1,5 +1,5 @@
 package com.rdald.app.service
-
+import com.rdald.app.R
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
@@ -112,7 +112,7 @@ class PlaybackService : MediaLibraryService() {
             }
             ACTION_LOAD_TEXT -> {
                 val text = intent.getStringExtra(EXTRA_TEXT) ?: ""
-                val title = intent.getStringExtra(EXTRA_TITLE) ?: "NaraTTS"
+                val title = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
                 val id = intent.getStringExtra(EXTRA_ID) ?: ""
                 val progress = intent.getIntExtra(EXTRA_PROGRESS, 0)
                 player?.playText(title, text, id, progress, announceTime = true)

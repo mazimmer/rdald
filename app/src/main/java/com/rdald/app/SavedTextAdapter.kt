@@ -166,9 +166,9 @@ class SavedTextAdapter : RecyclerView.Adapter<SavedTextAdapter.ViewHolder>() {
             binding.tvDate.text = if (item.progress in 1..99) {
                 val remSec = totalSec * (100 - item.progress) / 100
                 val remMin = kotlin.math.ceil(remSec / 60.0).toInt().coerceAtLeast(1)
-                "$dateStr · ${item.progress}% · ~$totalMin min (~$remMin min left)"
+                itemView.context.getString(R.string.meta_progress, dateStr, item.progress, totalMin, remMin)
             } else {
-                "$dateStr · ~$totalMin min"
+                itemView.context.getString(R.string.meta_simple, dateStr, totalMin)
             }
             binding.ivDrag.setOnTouchListener { _, e ->
                 if (e.actionMasked == MotionEvent.ACTION_DOWN) touchHelper?.startDrag(this)

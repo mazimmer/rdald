@@ -27,12 +27,16 @@ class ShareActivity : Activity() {
                             putExtra(DownloadService.EXTRA_URL, sharedText.trim())
                         }
                     )
-                    Toast.makeText(this, "Adding to NaraTTS…", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.adding_to_app, getString(R.string.app_name)),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     SavedTextDb.get(this).insert(
-                        SavedText("Shared Text", sharedText, System.currentTimeMillis())
+                        SavedText(getString(R.string.shared_text_title), sharedText, System.currentTimeMillis())
                     )
-                    Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.text_added, Toast.LENGTH_SHORT).show()
                 }
             }
         }

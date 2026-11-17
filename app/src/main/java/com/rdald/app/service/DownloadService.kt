@@ -1,5 +1,5 @@
 package com.rdald.app.service
-
+import com.rdald.app.R
 import android.app.Service
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -52,7 +52,7 @@ class DownloadService : Service() {
         Thread {
             try {
                 val res = fetchArticle(url)
-                if (res.text.isBlank()) throw IllegalStateException("No text found")
+                if (res.text.isBlank()) throw IllegalStateException(getString(R.string.error_no_text))
                 val id = UUID.randomUUID().toString()
                 val iconPath = saveFavicon(res, id)
                 SavedTextDb.get(this).insert(

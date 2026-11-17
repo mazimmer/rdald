@@ -36,9 +36,13 @@ class SettingsActivity : AppCompatActivity() {
             // Update summaries to show current values
             updateSeekBarSummary(findPreference<SeekBarPreference>("speech_rate"), "%", 100)
             updateSeekBarSummary(findPreference<SeekBarPreference>("speech_pitch"), "%", 100)
-            updateSeekBarSummary(findPreference<SeekBarPreference>("forward_interval"), "s", 30)
-            updateSeekBarSummary(findPreference<SeekBarPreference>("rewind_interval"), "s", 10)
-            updateSeekBarSummary(findPreference<SeekBarPreference>("announce_threshold_min"), " min", 5)
+            val seconds = getString(R.string.unit_seconds_suffix)
+            updateSeekBarSummary(findPreference<SeekBarPreference>("forward_interval"), seconds, 30)
+            updateSeekBarSummary(findPreference<SeekBarPreference>("rewind_interval"), seconds, 10)
+            updateSeekBarSummary(
+                findPreference<SeekBarPreference>("announce_threshold_min"),
+                getString(R.string.unit_min_suffix), 5
+            )
 
             findPreference<Preference>("voices")?.setOnPreferenceClickListener {
                 startActivity(Intent(requireContext(), VoicesActivity::class.java))

@@ -53,7 +53,7 @@ object TtsEngines {
     }
 
     fun labelFor(context: Context, pkg: String?): String {
-        if (pkg.isNullOrBlank()) return "System default"
+        if (pkg.isNullOrBlank()) return context.getString(R.string.system_default)
         return installed(context).firstOrNull { it.packageName == pkg }?.label ?: pkg
     }
 }

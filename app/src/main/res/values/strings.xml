@@ -6,12 +6,96 @@
     <string name="notification_paused">Paused</string>
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
-    <string name="action_forward">Forward 30s</string>
-    <string name="action_rewind">Rewind 10s</string>
+    <string name="action_forward">Forward</string>
+    <string name="action_rewind">Rewind</string>
+
     <string name="add_text">Add Text</string>
     <string name="inbox">Inbox</string>
     <string name="archive">Archive</string>
     <string name="delete">Delete</string>
     <string name="settings">Settings</string>
+
+    <!-- Add / intake -->
+    <string name="add_dialog_hint">Paste or type text here</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="text_added">Text added</string>
+    <string name="text_empty">Text cannot be empty</string>
+    <string name="downloading">Downloading…</string>
+    <string name="download_failed">Download failed: %1$s</string>
+    <string name="error_no_text">No text found</string>
+    <string name="moved_to_archive">Moved to archive</string>
+    <string name="deleted">Deleted</string>
+    <string name="archive_empty">Archive is empty</string>
+    <string name="no_items">No items</string>
+    <string name="delete_count">Delete (%1$d)</string>
+    <string name="shared_text_title">Shared Text</string>
+    <string name="custom_text_title">Custom Text</string>
+    <string name="summary_items">%1$d items · ~%2$s total · ~%3$s remaining</string>
+    <string name="summary_item">%1$d item · ~%2$s total · ~%3$s remaining</string>
+
+    <!-- Reader -->
+    <string name="no_text_to_read">No text to read</string>
+    <string name="no_source_link">No source link for this item</string>
+    <string name="no_link_app">No app to open links</string>
+    <string name="player_not_ready">Player not ready</string>
+    <string name="voice_deselected">Current voice deselected</string>
+    <string name="voice_change_failed">Couldn\'t change voice</string>
+    <string name="playback_not_ready">Playback not ready yet</string>
+    <string name="deselect_current_voice">Deselect current voice</string>
+
+    <!-- Share -->
+    <string name="adding_to_app">Adding to %1$s…</string>
+
+    <!-- Voices -->
+    <string name="voices_title">Voices</string>
+    <string name="loading_voices">Loading voices…</string>
+    <string name="no_tts_engines">No TTS engines installed.</string>
+    <string name="no_voices_reported">No voices reported by the installed engines.</string>
+    <string name="all_languages">All languages</string>
+    <string name="general">General</string>
+    <string name="select_all">Select all</string>
+    <string name="select_none">Select none</string>
+    <string name="reorder">Reorder</string>
+    <string name="expand">Expand</string>
+    <string name="selected">Selected</string>
+    <string name="engines_voices">%1$d engines · %2$d voices</string>
+    <string name="engine_voices">%1$d engine · %2$d voices</string>
+    <string name="system_default">System default</string>
+
+    <!-- Settings / preferences -->
+    <string name="pref_category_playback">Playback</string>
+    <string name="pref_voices">Voices</string>
+    <string name="pref_voices_summary">Choose which voices may be used (all selected by default)</string>
+    <string name="pref_speech_rate">Speech Rate</string>
+    <string name="pref_speech_rate_summary">Adjust the speaking speed (50–200%)</string>
+    <string name="pref_speech_pitch">Speech Pitch</string>
+    <string name="pref_speech_pitch_summary">Adjust the speaking pitch (50–200%)</string>
+    <string name="pref_announce_threshold">Time announcement threshold</string>
+    <string name="pref_announce_threshold_summary">Announce total/remaining time only when longer than N minutes (0 = always)</string>
+    <string name="pref_bt_category">Bluetooth controls</string>
+    <string name="pref_bt_skip">Forward/rewind skips articles</string>
+    <string name="pref_bt_skip_summary">Bluetooth next/previous jumps to the next/previous article instead of the next paragraph</string>
+    <string name="pref_appearance">Appearance</string>
+    <string name="pref_compact">Compact cards</string>
+    <string name="pref_compact_summary">Show only titles and favicons in the lists</string>
+    <string name="pref_category_forward_rewind">Forward/Rewind</string>
+    <string name="pref_forward_interval">Forward Interval</string>
+    <string name="pref_forward_interval_summary">Seconds to jump forward (5–60s)</string>
+    <string name="pref_rewind_interval">Rewind Interval</string>
+    <string name="pref_rewind_interval_summary">Seconds to jump backward (5–60s)</string>
+    <string name="unit_min_suffix"> min</string>
+    <string name="unit_seconds_suffix"> s</string>
+
+    <!-- Spoken announcements -->
+    <string name="announce_item_time">The item time is %1$d minutes.</string>
+    <string name="announce_remaining_time">The remaining item time is %1$d minutes.</string>
+    <string name="announce_continuing">Continuing with the next item.</string>
+    <string name="announce_no_more">No more items in the inbox.</string>
+
+    <!-- List row meta -->
+    <string name="meta_progress">%1$s · %2$d%% · ~%3$d min (~%4$d min left)</string>
+    <string name="meta_simple">%1$s · ~%2$d min</string>
+
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>

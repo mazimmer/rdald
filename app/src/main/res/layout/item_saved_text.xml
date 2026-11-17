@@ -68,7 +68,7 @@
             android:layout_height="28dp"
             android:padding="4dp"
             android:src="@drawable/ic_drag_handle"
-            android:contentDescription="Reorder"
+            android:contentDescription="@string/reorder"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 

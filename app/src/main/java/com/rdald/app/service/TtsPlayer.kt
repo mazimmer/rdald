@@ -1,5 +1,5 @@
 package com.rdald.app.service
-
+import com.rdald.app.R
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -316,8 +316,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 if (myGen == announceGen) {
                     if (shouldAnnounce && playWhenReady) {
                         val mins = (remainingSec + 59) / 60
-                        val msg = if (currentStartPercent > 0) "The remaining item time is $mins minutes."
-                        else "The item time is $mins minutes."
+                        val msg = if (currentStartPercent > 0) {
+                            context.getString(R.string.announce_remaining_time, mins)
+                        } else {
+                            context.getString(R.string.announce_item_time, mins)
+                        }
                         announce(msg) { if (myGen == announceGen) startSpeaking(startIndex) }
                     } else {
                         startSpeaking(startIndex)
@@ -612,6 +615,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     /** Detect the language of [text] (BCP-47 tag) using the platform classifier. */
+    /** Language of the app/system UI, used for spoken announcements. */
+    private fun appLangBase(): String = try {
+        context.resources.configuration.locales[0].language.ifBlank { "en" }
+    } catch (_: Exception) {
+        "en"
+    }
+
     private fun detectLanguage(text: String): String {
         val sample = text.take(2000)
         // 1) Stopword heuristic — reliable for the languages we support.
@@ -924,7 +934,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
         if (next != null) {
             pendingNextItem = next
-            announce("Continuing with the next item.") {
+            announce(context.getString(R.string.announce_continuing)) {
                 if (playWhenReady) {
                     val r = Runnable { startPendingNext() }
                     nextStartRunnable = r
@@ -933,7 +943,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             playbackState = Player.STATE_READY
         } else {
-            announce("No more items in the inbox.") {
+            announce(context.getString(R.string.announce_no_more)) {
                 playWhenReady = false
                 playbackState = Player.STATE_ENDED
                 invalidateState()
@@ -975,7 +985,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         if (useItemVoice) {
             applyItemVoice()
         } else {
-            val en = pickVoice("en")
+            val appLang = appLangBase()
+            val en = pickVoice(appLang)
             if (en != null) {
                 makeActive(en.enginePkg)
                 try {
@@ -984,8 +995,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 }
                 currentVoiceName = en.key
             } else {
-                tts?.language = Locale.ENGLISH
-                currentVoiceName = "en"
+                tts?.language = Locale(appLang)
+                currentVoiceName = appLang
             }
             tts?.setSpeechRate(1.0f)
             tts?.setPitch(1.0f)

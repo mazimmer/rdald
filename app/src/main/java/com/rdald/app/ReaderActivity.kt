@@ -72,7 +72,7 @@ class ReaderActivity : AppCompatActivity() {
 
         savedText = intent.getParcelableExtra("saved_text")
         if (savedText == null) {
-            Toast.makeText(this, "No text to read", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.no_text_to_read, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -94,13 +94,13 @@ class ReaderActivity : AppCompatActivity() {
     private fun openSourceUrl() {
         val url = savedText?.sourceUrl
         if (url.isNullOrBlank()) {
-            Toast.makeText(this, "No source link for this item", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.no_source_link, Toast.LENGTH_SHORT).show()
             return
         }
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (_: Exception) {
-            Toast.makeText(this, "No app to open links", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.no_link_app, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -130,7 +130,7 @@ class ReaderActivity : AppCompatActivity() {
     private fun deselectCurrentVoice() {
         val c = controller
         if (c == null) {
-            Toast.makeText(this, "Player not ready", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.player_not_ready, Toast.LENGTH_SHORT).show()
             return
         }
         try {
@@ -138,9 +138,9 @@ class ReaderActivity : AppCompatActivity() {
                 SessionCommand(PlaybackService.CMD_DESELECT_VOICE, Bundle.EMPTY),
                 Bundle.EMPTY
             )
-            Toast.makeText(this, "Current voice deselected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.voice_deselected, Toast.LENGTH_SHORT).show()
         } catch (_: Exception) {
-            Toast.makeText(this, "Couldn't change voice", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.voice_change_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -254,7 +254,7 @@ class ReaderActivity : AppCompatActivity() {
 
     private fun togglePlayback() {
         val c = controller ?: run {
-            Toast.makeText(this, "Playback not ready yet", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.playback_not_ready, Toast.LENGTH_SHORT).show()
             return
         }
         if (c.isPlaying) c.pause() else c.play()

@@ -76,7 +76,8 @@ class MainActivity : AppCompatActivity() {
         binding.actionBar.visibility = if (n > 0) android.view.View.VISIBLE else android.view.View.GONE
         // "Archive" only makes sense in the Inbox; in the Archive tab you can only delete.
         binding.btnArchive.visibility = if (showArchive) android.view.View.GONE else android.view.View.VISIBLE
-        if (n > 0) binding.btnDelete.text = "Delete ($n)" else binding.btnDelete.text = getString(R.string.delete)
+        if (n > 0) binding.btnDelete.text = getString(R.string.delete_count, n)
+        else binding.btnDelete.text = getString(R.string.delete)
     }
 
     private fun archiveSelected() {
@@ -85,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         SavedTextDb.get(this).setArchived(ids, true)
         adapter.clearSelection()
         loadTexts()
-        Toast.makeText(this, "Moved to archive", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.moved_to_archive, Toast.LENGTH_SHORT).show()
     }
 
     private fun deleteSelected() {
@@ -94,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         SavedTextDb.get(this).delete(ids)
         adapter.clearSelection()
         loadTexts()
-        Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.deleted, Toast.LENGTH_SHORT).show()
     }
 
     private val refreshReceiver = object : BroadcastReceiver() {
@@ -103,7 +104,8 @@ class MainActivity : AppCompatActivity() {
             val err = intent.getStringExtra(DownloadService.EXTRA_ERROR)
             Toast.makeText(
                 this@MainActivity,
-                if (err == null) "Text added" else "Download failed: $err",
+                if (err == null) getString(R.string.text_added)
+                else getString(R.string.download_failed, err),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -140,7 +142,7 @@ class MainActivity : AppCompatActivity() {
     /** Show item count + total estimated listening time for the current tab. */
     private fun updateSummary(items: List<SavedText>) {
         if (items.isEmpty()) {
-            binding.tvSummary.text = if (showArchive) "Archive is empty" else "No items"
+            binding.tvSummary.text = getString(if (showArchive) R.string.archive_empty else R.string.no_items)
             return
         }
         val rate = getSharedPreferences("settings", MODE_PRIVATE)
@@ -164,9 +166,11 @@ class MainActivity : AppCompatActivity() {
                 "$min min"
             }
         }
-        val noun = if (items.size == 1) "item" else "items"
-        binding.tvSummary.text =
-            "${items.size} $noun · ~${fmt(totalSec)} total · ~${fmt(remainSec)} remaining"
+        binding.tvSummary.text = if (items.size == 1) {
+            getString(R.string.summary_item, items.size, fmt(totalSec), fmt(remainSec))
+        } else {
+            getString(R.string.summary_items, items.size, fmt(totalSec), fmt(remainSec))
+        }
     }
 
     private fun startDownload(url: String) {
@@ -175,7 +179,7 @@ class MainActivity : AppCompatActivity() {
             putExtra(DownloadService.EXTRA_URL, url)
         }
         startService(i)
-        Toast.makeText(this, "Downloading…", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.downloading, Toast.LENGTH_SHORT).show()
     }
 
     private fun requestNotificationPermission() {
@@ -219,10 +223,10 @@ class MainActivity : AppCompatActivity() {
                     startDownload(sharedText.trim())
                 } else {
                     SavedTextDb.get(this).insert(
-                        SavedText("Shared Text", sharedText, System.currentTimeMillis())
+                        SavedText(getString(R.string.shared_text_title), sharedText, System.currentTimeMillis())
                     )
                     loadTexts()
-                    Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.text_added, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -290,29 +294,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun showAddTextDialog() {
         val input = EditText(this).apply {
-            hint = "Paste or type text here"
+            hint = getString(R.string.add_dialog_hint)
             setMinLines(5)
         }
         AlertDialog.Builder(this)
-            .setTitle("Add Text")
+            .setTitle(R.string.add_text)
             .setView(input)
-            .setPositiveButton("Add") { _, _ ->
+            .setPositiveButton(R.string.add) { _, _ ->
                 val text = input.text.toString().trim()
                 if (text.isNotBlank()) {
                     if (DownloadService.isUrl(text)) {
                         startDownload(text)
                     } else {
                         SavedTextDb.get(this).insert(
-                            SavedText("Custom Text", text, System.currentTimeMillis())
+                            SavedText(getString(R.string.custom_text_title), text, System.currentTimeMillis())
                         )
                         loadTexts()
-                        Toast.makeText(this, "Text added", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, R.string.text_added, Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this, "Text cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.text_empty, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 

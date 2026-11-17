@@ -105,7 +105,7 @@ class VoicesActivity : AppCompatActivity() {
         if (installed.isEmpty()) {
             binding.progress.visibility = View.GONE
             binding.tvEmpty.visibility = View.VISIBLE
-            binding.tvEmpty.text = "No TTS engines installed."
+            binding.tvEmpty.text = getString(R.string.no_tts_engines)
             return
         }
         val installedPkgs = installed.map { it.packageName }.toSet()
@@ -139,12 +139,16 @@ class VoicesActivity : AppCompatActivity() {
         allVoices = engineVoices.values.flatten()
         if (allVoices.isEmpty()) {
             binding.tvEmpty.visibility = View.VISIBLE
-            binding.tvEmpty.text = "No voices reported by the installed engines."
+            binding.tvEmpty.text = getString(R.string.no_voices_reported)
             return
         }
         binding.tvEmpty.visibility = View.GONE
         val n = engineVoices.keys.size
-        supportActionBar?.subtitle = "$n ${if (n == 1) "engine" else "engines"} · ${allVoices.size} voices"
+        supportActionBar?.subtitle = if (n == 1) {
+            getString(R.string.engine_voices, n, allVoices.size)
+        } else {
+            getString(R.string.engines_voices, n, allVoices.size)
+        }
         rebuildRows()
     }
 
@@ -188,7 +192,7 @@ class VoicesActivity : AppCompatActivity() {
     private fun rebuildRows() {
         val des = deselectedSet()
         val rows = ArrayList<Row>()
-        rows.add(Row(TYPE_MASTER, text = "All languages", state = stateOf(allVoices.map { it.key }, des)))
+        rows.add(Row(TYPE_MASTER, text = getString(R.string.all_languages), state = stateOf(allVoices.map { it.key }, des)))
 
         val byLang = allVoices.groupBy { langCode(it.voice.locale) }
         for (lang in byLang.keys.sortedBy { langLabel(it) }) {
@@ -277,6 +281,9 @@ class VoicesActivity : AppCompatActivity() {
         "sv" -> "Detta är ett prov på den här rösten."
         "da" -> "Dette er en prøve på denne stemme."
         "no", "nb", "nn" -> "Dette er en prøve på denne stemmen."
+        "ru" -> "Это пример этого голоса."
+        "zh" -> "这是此语音的示例。"
+        "ja" -> "これはこの声のサンプルです。"
         else -> "This is a sample of this voice."
     }
 
@@ -286,7 +293,7 @@ class VoicesActivity : AppCompatActivity() {
     }
 
     private fun countryLabel(lang: String, country: String): String {
-        if (country.isBlank()) return "General"
+        if (country.isBlank()) return getString(R.string.general)
         val name = Locale(lang, country).displayCountry.ifBlank { country }
         return name.replaceFirstChar { it.uppercase() }
     }

@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.7.11)
+## Features (current, v0.8.0)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,9 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.0** — **i18n**: follows the system language (English default) with German, French,
+  Italian, Spanish, Russian, Chinese and Japanese; UI strings externalized and **spoken
+  announcements localized**, using a voice matching the app language.
 - **0.7.11** — **drag-to-reorder** the Inbox/Archive lists via a per-row handle; order is persisted
   (`sortOrder`, DB schema **v6**).
 - **0.7.10** — optional **Bluetooth article skip**: forward = next article (no archive/finish),

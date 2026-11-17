@@ -1,0 +1,4 @@
+0.8.0
+- Internationalization: the app follows the system language (English default) and is now
+  available in German, French, Italian, Spanish, Russian, Chinese and Japanese.
+- Spoken announcements are localized and use a voice matching the app language.

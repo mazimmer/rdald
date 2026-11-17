@@ -1,58 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Playback">
+    <PreferenceCategory android:title="@string/pref_category_playback">
         <Preference
             android:key="voices"
-            android:title="Voices"
-            android:summary="Choose which voices may be used (all selected by default)" />
+            android:title="@string/pref_voices"
+            android:summary="@string/pref_voices_summary" />
         <SeekBarPreference
             android:key="speech_rate"
-            android:title="Speech Rate"
-            android:summary="Adjust the speaking speed (50-200%)"
+            android:title="@string/pref_speech_rate"
+            android:summary="@string/pref_speech_rate_summary"
             android:min="50"
             android:max="200"
             android:defaultValue="100" />
         <SeekBarPreference
             android:key="speech_pitch"
-            android:title="Speech Pitch"
-            android:summary="Adjust the speaking pitch (50-200%)"
+            android:title="@string/pref_speech_pitch"
+            android:summary="@string/pref_speech_pitch_summary"
             android:min="50"
             android:max="200"
             android:defaultValue="100" />
         <SeekBarPreference
             android:key="announce_threshold_min"
-            android:title="Time announcement threshold"
-            android:summary="Announce total/remaining time only when longer than N minutes (0 = always)"
+            android:title="@string/pref_announce_threshold"
+            android:summary="@string/pref_announce_threshold_summary"
             android:min="0"
             android:max="60"
             android:defaultValue="5" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Bluetooth controls">
+    <PreferenceCategory android:title="@string/pref_bt_category">
         <SwitchPreferenceCompat
             android:key="bt_skip_articles"
-            android:title="Forward/rewind skips articles"
-            android:summary="Bluetooth next/previous jumps to the next/previous article instead of the next paragraph"
+            android:title="@string/pref_bt_skip"
+            android:summary="@string/pref_bt_skip_summary"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Appearance">
+    <PreferenceCategory android:title="@string/pref_appearance">
         <SwitchPreferenceCompat
             android:key="compact_cards"
-            android:title="Compact cards"
-            android:summary="Show only titles and favicons in the lists"
+            android:title="@string/pref_compact"
+            android:summary="@string/pref_compact_summary"
             android:defaultValue="false" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Forward/Rewind">
+    <PreferenceCategory android:title="@string/pref_category_forward_rewind">
         <SeekBarPreference
             android:key="forward_interval"
-            android:title="Forward Interval"
-            android:summary="Seconds to jump forward (5-60s)"
+            android:title="@string/pref_forward_interval"
+            android:summary="@string/pref_forward_interval_summary"
             android:min="5"
             android:max="60"
             android:defaultValue="30" />
         <SeekBarPreference
             android:key="rewind_interval"
-            android:title="Rewind Interval"
-            android:summary="Seconds to jump backward (5-60s)"
+            android:title="@string/pref_rewind_interval"
+            android:summary="@string/pref_rewind_interval_summary"
             android:min="5"
             android:max="60"
             android:defaultValue="10" />

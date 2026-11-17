@@ -15,7 +15,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:src="@drawable/ic_chevron"
-        android:contentDescription="Expand" />
+        android:contentDescription="@string/expand" />
 
     <TextView
         android:id="@+id/tvHeader"
@@ -33,6 +33,6 @@
         android:layout_height="28dp"
         android:layout_marginStart="8dp"
         android:src="@drawable/ic_check_off"
-        android:contentDescription="Selected" />
+        android:contentDescription="@string/selected" />
 
 </LinearLayout>
