@@ -1,0 +1,3 @@
+0.7.6
+- Forward on the last paragraph now jumps to the end and continues to the next item.
+- Duplicate paragraphs/sentences are stripped from downloaded articles.

@@ -1,0 +1,3 @@
+0.7.10
+- Optional Bluetooth behavior: forward/rewind skips to the next/previous article
+  (Settings → Bluetooth controls). Rewind on the first article restarts it.

@@ -1,0 +1,5 @@
+0.7.8
+- Version number shown small next to the app name.
+- Article favicon shown in the media notification.
+- Optional compact cards (titles + favicon only).
+- Lists open scrolled to the newest item.

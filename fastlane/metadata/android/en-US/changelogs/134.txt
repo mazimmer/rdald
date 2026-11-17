@@ -1,0 +1,2 @@
+0.7.11
+- Drag to reorder the Inbox and Archive lists (use the handle on the right). Order is saved.

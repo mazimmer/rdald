@@ -1,0 +1,4 @@
+0.7.9
+- Per-sentence language detection: foreign-language sentences are read with a fitting voice;
+  unclear sentences keep the item's default language.
+
