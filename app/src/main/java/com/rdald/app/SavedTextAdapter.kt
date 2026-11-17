@@ -7,11 +7,12 @@ import android.os.Handler
 import android.os.Looper
 import android.util.LruCache
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.rdald.app.databinding.ItemSavedTextBinding
 import java.util.concurrent.Executors
@@ -55,16 +56,18 @@ private object FaviconLoader {
 }
 
 /**
- * List adapter with long-press multi-selection (no checkboxes).
- * Tap opens an item; long-press toggles selection and enters selection mode; tap while in
- * selection mode toggles too. Selected rows are highlighted.
+ * List adapter with long-press multi-selection and drag-to-reorder via a dedicated handle.
+ * Tap opens an item; long-press toggles selection; drag the handle to reorder.
  */
-class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(DiffCallback()) {
+class SavedTextAdapter : RecyclerView.Adapter<SavedTextAdapter.ViewHolder>() {
 
     companion object {
         private const val COLOR_SELECTED = 0xFFBBDEFB.toInt() // light blue highlight
         private const val COLOR_NORMAL = Color.WHITE
     }
+
+    private var items: MutableList<SavedText> = ArrayList()
+    private var touchHelper: ItemTouchHelper? = null
 
     private var onItemClickListener: ((SavedText) -> Unit)? = null
     var onSelectionChanged: (() -> Unit)? = null
@@ -77,9 +80,33 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
         onItemClickListener = listener
     }
 
+    /** Replace the list (diffed) — call whenever the DB contents are reloaded. */
+    fun submit(newItems: List<SavedText>) {
+        val old = items.toList()
+        val newList = newItems.toMutableList()
+        val diff = DiffUtil.calculateDiff(ItemDiff(old, newList), true)
+        items = newList
+        diff.dispatchUpdatesTo(this)
+    }
+
+    fun currentItems(): List<SavedText> = items
+
+    /** Reorder during drag; returns false if the move is invalid. */
+    fun moveItem(from: Int, to: Int): Boolean {
+        if (from !in items.indices || to !in items.indices) return false
+        val moved = items.removeAt(from)
+        items.add(to, moved)
+        notifyItemMoved(from, to)
+        return true
+    }
+
+    fun attachTouchHelper(helper: ItemTouchHelper) {
+        touchHelper = helper
+    }
+
     val selectedCount: Int get() = selectedIds.size
 
-    fun selectedItems(): List<SavedText> = currentList.filter { selectedIds.contains(it.id) }
+    fun selectedItems(): List<SavedText> = items.filter { selectedIds.contains(it.id) }
 
     fun clearSelection() {
         if (selectedIds.isEmpty() && !isSelectionMode) return
@@ -96,13 +123,15 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
         onSelectionChanged?.invoke()
     }
 
+    override fun getItemCount(): Int = items.size
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemSavedTextBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(items[position])
     }
 
     inner class ViewHolder(private val binding: ItemSavedTextBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -114,7 +143,6 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
                 .getBoolean("compact_cards", false)
             binding.tvPreview.visibility = if (compact) View.GONE else View.VISIBLE
             binding.tvDate.visibility = if (compact) View.GONE else View.VISIBLE
-            // Tighten spacing in compact mode to remove excess white space.
             val density = itemView.resources.displayMetrics.density
             fun dpx(v: Int) = (v * density + 0.5f).toInt()
             val pad = dpx(if (compact) 6 else 16)
@@ -142,6 +170,10 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
             } else {
                 "$dateStr · ~$totalMin min"
             }
+            binding.ivDrag.setOnTouchListener { _, e ->
+                if (e.actionMasked == MotionEvent.ACTION_DOWN) touchHelper?.startDrag(this)
+                false
+            }
             val selected = selectedIds.contains(item.id)
             binding.root.setCardBackgroundColor(if (selected) COLOR_SELECTED else COLOR_NORMAL)
             binding.root.setOnClickListener {
@@ -154,13 +186,15 @@ class SavedTextAdapter : ListAdapter<SavedText, SavedTextAdapter.ViewHolder>(Dif
         }
     }
 
-    class DiffCallback : DiffUtil.ItemCallback<SavedText>() {
-        override fun areItemsTheSame(oldItem: SavedText, newItem: SavedText): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: SavedText, newItem: SavedText): Boolean {
-            return oldItem == newItem
-        }
+    private class ItemDiff(
+        private val oldList: List<SavedText>,
+        private val newList: List<SavedText>
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize(): Int = oldList.size
+        override fun getNewListSize(): Int = newList.size
+        override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean =
+            oldList[oldPos].id == newList[newPos].id
+        override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean =
+            oldList[oldPos] == newList[newPos]
     }
 }

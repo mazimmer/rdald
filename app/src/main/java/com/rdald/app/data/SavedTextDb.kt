@@ -11,9 +11,10 @@ import com.rdald.app.SavedText
  * Schema v2 adds an `archived` flag for the inbox/archive split.
  * Schema v4 adds `iconPath` for a cached article favicon.
  * Schema v5 adds `sourceUrl` (the article URL, to open in a browser).
+ * Schema v6 adds `sortOrder` for user-defined list ordering (drag & drop).
  */
 class SavedTextDb private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 5) {
+    SQLiteOpenHelper(context.applicationContext, "readaloud.db", null, 6) {
 
     companion object {
         @Volatile
@@ -35,7 +36,8 @@ class SavedTextDb private constructor(context: Context) :
                 "archived INTEGER NOT NULL DEFAULT 0, " +
                 "progress INTEGER NOT NULL DEFAULT 0, " +
                 "iconPath TEXT, " +
-                "sourceUrl TEXT)"
+                "sourceUrl TEXT, " +
+                "sortOrder INTEGER NOT NULL DEFAULT 0)"
         )
     }
 
@@ -52,9 +54,16 @@ class SavedTextDb private constructor(context: Context) :
         if (oldVersion < 5) {
             db.execSQL("ALTER TABLE saved_texts ADD COLUMN sourceUrl TEXT")
         }
+        if (oldVersion < 6) {
+            db.execSQL("ALTER TABLE saved_texts ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0")
+        }
     }
 
     fun insert(item: SavedText) {
+        val db = writableDatabase
+        val nextOrder = db.rawQuery(
+            "SELECT COALESCE(MAX(sortOrder), 0) + 1 FROM saved_texts", null
+        ).use { if (it.moveToFirst()) it.getLong(0) else 1L }
         val cv = ContentValues().apply {
             put("id", item.id)
             put("title", item.title)
@@ -64,8 +73,9 @@ class SavedTextDb private constructor(context: Context) :
             put("progress", item.progress)
             put("iconPath", item.iconPath)
             put("sourceUrl", item.sourceUrl)
+            put("sortOrder", nextOrder)
         }
-        writableDatabase.insertWithOnConflict("saved_texts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
+        db.insertWithOnConflict("saved_texts", null, cv, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun setProgress(id: String, percent: Int) {
@@ -73,17 +83,40 @@ class SavedTextDb private constructor(context: Context) :
         writableDatabase.update("saved_texts", cv, "id = ?", arrayOf(id))
     }
 
-    /** Move an item to the bottom of the queue by giving it a fresh createdAt timestamp. */
+    /** Move an item to the bottom of the queue (fresh timestamp + highest sort order). */
     fun moveToBottom(id: String) {
-        val cv = ContentValues().apply { put("createdAt", System.currentTimeMillis()) }
-        writableDatabase.update("saved_texts", cv, "id = ?", arrayOf(id))
+        val db = writableDatabase
+        val nextOrder = db.rawQuery(
+            "SELECT COALESCE(MAX(sortOrder), 0) + 1 FROM saved_texts", null
+        ).use { if (it.moveToFirst()) it.getLong(0) else 1L }
+        val cv = ContentValues().apply {
+            put("createdAt", System.currentTimeMillis())
+            put("sortOrder", nextOrder)
+        }
+        db.update("saved_texts", cv, "id = ?", arrayOf(id))
+    }
+
+    /** Persist a new manual order for the given ids (index = order). */
+    fun setOrder(ids: List<String>) {
+        if (ids.isEmpty()) return
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            ids.forEachIndexed { i, id ->
+                val cv = ContentValues().apply { put("sortOrder", i) }
+                db.update("saved_texts", cv, "id = ?", arrayOf(id))
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
     }
 
     fun getAll(archived: Boolean): List<SavedText> {
         val list = ArrayList<SavedText>()
         readableDatabase.query(
             "saved_texts", null, "archived = ?", arrayOf(if (archived) "1" else "0"),
-            null, null, "createdAt ASC"
+            null, null, "sortOrder ASC, createdAt ASC"
         ).use { c ->
             val idIdx = c.getColumnIndexOrThrow("id")
             val tIdx = c.getColumnIndexOrThrow("title")

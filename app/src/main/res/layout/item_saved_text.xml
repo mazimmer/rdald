@@ -33,7 +33,7 @@
             android:textColor="@android:color/black"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/ivIcon"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toStartOf="@id/ivDrag" />
 
         <TextView
             android:id="@+id/tvPreview"
@@ -47,7 +47,7 @@
             android:ellipsize="end"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
             app:layout_constraintStart_toEndOf="@id/ivIcon"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toStartOf="@id/ivDrag" />
 
         <TextView
             android:id="@+id/tvDate"
@@ -59,7 +59,18 @@
             android:textColor="@android:color/darker_gray"
             app:layout_constraintTop_toBottomOf="@id/tvPreview"
             app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintEnd_toStartOf="@id/ivDrag"
             app:layout_constraintBottom_toBottomOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivDrag"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_drag_handle"
+            android:contentDescription="Reorder"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

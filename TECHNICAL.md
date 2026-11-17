@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.7.10)
+## Features (current, v0.7.11)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -207,8 +207,8 @@ Key classes (under `app/src/main/java/com/rdald/app/`):
 
 ## Persistence
 
-SQLite via framework `SQLiteOpenHelper` (`readaloud.db`, schema **v5**, table `saved_texts`:
-`id/title/content/createdAt/archived/progress/iconPath/sourceUrl`). Migrations are additive
+SQLite via framework `SQLiteOpenHelper` (`readaloud.db`, schema **v6**, table `saved_texts`:
+`id/title/content/createdAt/archived/progress/iconPath/sourceUrl/sortOrder`). Migrations are additive
 (`ALTER TABLE ADD COLUMN`) so existing items survive upgrades. Room was avoided because the
 only cached Room (2.8.5) requires
 Kotlin 2.x + KSP while the project uses Kotlin 1.9.20; the toolchain upgrade was riskier than
@@ -279,6 +279,8 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.11** — **drag-to-reorder** the Inbox/Archive lists via a per-row handle; order is persisted
+  (`sortOrder`, DB schema **v6**).
 - **0.7.10** — optional **Bluetooth article skip**: forward = next article (no archive/finish),
   rewind = previous article (or restart current if none). In-app buttons still seek paragraphs.
 - **0.7.9** — **per-sentence language detection**: each sentence's language is detected and a

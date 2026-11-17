@@ -18,7 +18,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.rdald.app.data.SavedTextDb
 import com.rdald.app.databinding.ActivityMainBinding
 import com.rdald.app.service.DownloadService
@@ -127,12 +129,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTexts() {
         val items = SavedTextDb.get(this).getAll(showArchive)
-        adapter.submitList(items) {
-            if (scrollToBottomPending && items.isNotEmpty()) {
-                binding.recyclerView.scrollToPosition(items.size - 1)
-            }
-            scrollToBottomPending = false
+        adapter.submit(items)
+        if (scrollToBottomPending && items.isNotEmpty()) {
+            binding.recyclerView.scrollToPosition(items.size - 1)
         }
+        scrollToBottomPending = false
         updateSummary(items)
     }
 
@@ -230,6 +231,35 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
+
+        // Drag-to-reorder using the handle (long-press is reserved for multi-select).
+        val dragCallback = object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+        ) {
+            override fun isLongPressDragEnabled(): Boolean = false
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val from = viewHolder.bindingAdapterPosition
+                val to = target.bindingAdapterPosition
+                if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+                return adapter.moveItem(from, to)
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+                super.clearView(recyclerView, viewHolder)
+                // Persist the new order once the drag finishes.
+                SavedTextDb.get(this@MainActivity).setOrder(adapter.currentItems().map { it.id })
+            }
+        }
+        val touchHelper = ItemTouchHelper(dragCallback)
+        touchHelper.attachToRecyclerView(binding.recyclerView)
+        adapter.attachTouchHelper(touchHelper)
         adapter.setOnItemClickListener { savedText ->
             if (showArchive) {
                 // Move back to the inbox (bottom of queue). Reset to 0% only if fully read;
