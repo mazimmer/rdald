@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.7.9)
+## Features (current, v0.7.10)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,8 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.7.10** — optional **Bluetooth article skip**: forward = next article (no archive/finish),
+  rewind = previous article (or restart current if none). In-app buttons still seek paragraphs.
 - **0.7.9** — **per-sentence language detection**: each sentence's language is detected and a
   fitting voice chosen; unclear sentences keep the item's default language. The whole item is
   pre-scanned at load and upcoming sentences are pre-synthesized with their own voice.

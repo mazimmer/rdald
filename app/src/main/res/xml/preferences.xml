@@ -27,6 +27,13 @@
             android:max="60"
             android:defaultValue="5" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Bluetooth controls">
+        <SwitchPreferenceCompat
+            android:key="bt_skip_articles"
+            android:title="Forward/rewind skips articles"
+            android:summary="Bluetooth next/previous jumps to the next/previous article instead of the next paragraph"
+            android:defaultValue="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="Appearance">
         <SwitchPreferenceCompat
             android:key="compact_cards"

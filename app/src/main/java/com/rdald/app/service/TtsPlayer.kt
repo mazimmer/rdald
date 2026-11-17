@@ -524,6 +524,65 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         }
     }
 
+    private fun btSkipArticles(): Boolean = try {
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .getBoolean("bt_skip_articles", false)
+    } catch (_: Exception) {
+        false
+    }
+
+    /** Bluetooth forward: jump to the next article (without finishing/archiving the current one). */
+    fun skipToNextArticle() {
+        mainHandler.post {
+            val curId = currentItemId
+            val list = try {
+                SavedTextDb.get(context).getAll(false)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            if (list.isEmpty()) return@post
+            val idx = list.indexOfFirst { it.id == curId }
+            val next = if (idx >= 0 && idx + 1 < list.size) list[idx + 1] else null
+            if (next == null) {
+                Log.i(TAG, "skipToNextArticle: no next item")
+                return@post
+            }
+            persistProgress()
+            abortAnnouncements()
+            stopMediaPlayback()
+            playText(next.title, next.content, next.id, next.progress, announceTime = false)
+        }
+    }
+
+    /**
+     * Bluetooth rewind: jump to the previous article if one exists, otherwise restart the current
+     * article from the beginning.
+     */
+    fun skipToPreviousArticle() {
+        mainHandler.post {
+            val curId = currentItemId
+            val list = try {
+                SavedTextDb.get(context).getAll(false)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            val idx = if (curId != null) list.indexOfFirst { it.id == curId } else -1
+            val prev = if (idx > 0) list[idx - 1] else null
+            if (prev != null) {
+                persistProgress()
+                abortAnnouncements()
+                stopMediaPlayback()
+                playText(prev.title, prev.content, prev.id, prev.progress, announceTime = false)
+            } else {
+                // No previous article: restart the current one from the beginning.
+                abortAnnouncements()
+                stopMediaPlayback()
+                index = 0
+                if (playWhenReady) speakAt(0) else invalidateState()
+            }
+        }
+    }
+
     fun onMediaKey(code: Int) {
         Log.i(TAG, "onMediaKey code=$code")
         mainHandler.post {
@@ -532,10 +591,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
                 KeyEvent.KEYCODE_MEDIA_PAUSE -> setPlayWhenReady(false)
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK ->
                     setPlayWhenReady(!playWhenReady)
-                KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD ->
-                    seekToNextMediaItem()
-                KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_MEDIA_REWIND ->
-                    seekToPreviousMediaItem()
+                KeyEvent.KEYCODE_MEDIA_NEXT, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                    if (btSkipArticles()) skipToNextArticle() else seekToNextMediaItem()
+                }
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                    if (btSkipArticles()) skipToPreviousArticle() else seekToPreviousMediaItem()
+                }
                 KeyEvent.KEYCODE_MEDIA_STOP -> handleStop()
             }
         }
