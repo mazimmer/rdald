@@ -1,0 +1,3 @@
+0.8.7
+- Text cleanup now keeps numbers (e.g. 100'000). It still removes URLs, long symbol runs and
+  garbled consonant blobs.

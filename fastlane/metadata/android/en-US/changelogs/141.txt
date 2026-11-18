@@ -1,0 +1,3 @@
+0.8.6
+- Fix overlapping audio when seeking to the end or skipping articles: only one source plays at a
+  time, queued auto-advance is cancelled, and an item can only finish once.

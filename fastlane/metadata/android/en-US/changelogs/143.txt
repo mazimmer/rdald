@@ -1,0 +1,4 @@
+0.8.8
+- Text is normalized for speech before reading: common abbreviations (Mr., Dr., z.B., …) are
+  expanded, dates like “10. August” become “10th of August” / “zehnter August”, and initials no
+  longer cause false sentence breaks.
