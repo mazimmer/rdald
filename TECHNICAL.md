@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.8.12)
+## Features (current, v0.8.13)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,8 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.13** — text cleanup strips long runs of symbols (`__________`, `-----`, `•••`, …), even when
+  attached to words/numbers.
 - **0.8.12** — the player broadcasts `ACTION_LIBRARY_CHANGED` when an item finishes; MainActivity
   reloads immediately and the finished card animates out (`DefaultItemAnimator`).
 - **0.8.11** — mini player control icons tinted dark for visibility on the light card.

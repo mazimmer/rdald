@@ -131,6 +131,9 @@ class DownloadService : Service() {
             var p = urlRegex.replace(para, " ")
             // Citation-style references like [1] / [12].
             p = p.replace(Regex("\\[\\s*\\d{1,3}\\s*]"), " ")
+            // Remove long runs of symbols (underscores, dashes, dots, box-drawing, etc.),
+            // even when attached to words/numbers.
+            p = p.replace(Regex("[^\\p{L}\\p{N}\\s]{4,}"), " ")
             val kept = p.split(Regex("\\s+")).filter { it.isNotBlank() && !isJunkToken(it) }
             val line = kept.joinToString(" ").replace(Regex("\\s+"), " ").trim()
             if (line.isBlank() || isMostlySymbols(line)) continue

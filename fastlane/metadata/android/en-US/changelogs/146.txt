@@ -1,0 +1,2 @@
+0.8.11
+- Mini player controls are now dark, so they’re visible on the light card.
