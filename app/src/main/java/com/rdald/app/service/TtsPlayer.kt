@@ -280,7 +280,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
             title = newTitle.ifBlank { "NaraTTS" }
-            val parts = buildParagraphs(text)
+            // Detect language first so we can normalize abbreviations/dates before sentence splitting.
+            val langTag = detectLanguage(text)
+            itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
+            val normalizedText = normalizeForSpeech(text, itemLangBase)
+            val parts = buildParagraphs(normalizedText)
             sentences = parts.first
             paragraphStarts = parts.second
             paragraphOf = parts.third
@@ -297,7 +301,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
-            currentTotalSeconds = estimateSeconds(wordCount(text))
+            currentTotalSeconds = estimateSeconds(wordCount(normalizedText))
             playlist = buildPlaylist()
             playbackState = if (sentences.isEmpty()) Player.STATE_IDLE else Player.STATE_READY
             playWhenReady = true
@@ -307,8 +311,6 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             index = startIndex
             persistProgress()
 
-            val langTag = detectLanguage(text)
-            itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
             val picked = pickVoice(itemLangBase)
             itemPicked = picked
             itemVoice = picked?.voice
@@ -638,6 +640,113 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         context.resources.configuration.locales[0].language.ifBlank { "en" }
     } catch (_: Exception) {
         "en"
+    }
+
+    // ---- Text normalization for TTS: abbreviations, initials and dates ----
+    private val monthsByLang: Map<String, List<String>> = mapOf(
+        "en" to listOf(
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ),
+        "de" to listOf(
+            "Januar", "Februar", "März", "April", "Mai", "Juni",
+            "Juli", "August", "September", "Oktober", "November", "Dezember"
+        ),
+        "fr" to listOf(
+            "janvier", "février", "mars", "avril", "mai", "juin",
+            "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+        ),
+        "it" to listOf(
+            "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+            "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"
+        ),
+        "es" to listOf(
+            "enero", "febrero", "marzo", "abril", "mayo", "junio",
+            "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+        ),
+        "ru" to listOf(
+            "января", "февраля", "марта", "апреля", "мая", "июня",
+            "июля", "августа", "сентября", "октября", "ноября", "декабря"
+        )
+    )
+
+    private val germanOrdinals: Map<Int, String> = mapOf(
+        1 to "erster", 2 to "zweiter", 3 to "dritter", 4 to "vierter", 5 to "fünfter",
+        6 to "sechster", 7 to "siebter", 8 to "achter", 9 to "neunter", 10 to "zehnter",
+        11 to "elfter", 12 to "zwölfter", 13 to "dreizehnter", 14 to "vierzehnter",
+        15 to "fünfzehnter", 16 to "sechzehnter", 17 to "siebzehnter", 18 to "achtzehnter",
+        19 to "neunzehnter", 20 to "zwanzigster", 21 to "einundzwanzigster",
+        22 to "zweiundzwanzigster", 23 to "dreiundzwanzigster", 24 to "vierundzwanzigster",
+        25 to "fünfundzwanzigster", 26 to "sechsundzwanzigster", 27 to "siebenundzwanzigster",
+        28 to "achtundzwanzigster", 29 to "neunundzwanzigster", 30 to "dreißigster",
+        31 to "einunddreißigster"
+    )
+
+    private fun expansionsFor(lang: String): List<Pair<String, String>> {
+        val common = listOf(
+            "Mr." to "Mister", "Mrs." to "Missus", "Ms." to "Miss", "Dr." to "Doctor",
+            "Prof." to "Professor", "Jr." to "Junior", "Sr." to "Senior", "vs." to "versus",
+            "e.g." to "for example", "i.e." to "that is", "etc." to "et cetera",
+            "U.S." to "US", "U.K." to "UK", "U.N." to "UN", "a.m." to "AM", "p.m." to "PM"
+        )
+        val byLang = when (lang) {
+            "de" -> listOf(
+                "Dr." to "Doktor", "Prof." to "Professor", "bzw." to "beziehungsweise",
+                "usw." to "und so weiter", "z.B." to "zum Beispiel", "z. B." to "zum Beispiel",
+                "d.h." to "das heißt", "d. h." to "das heißt", "Nr." to "Nummer",
+                "ca." to "circa", "evtl." to "eventuell", "ggf." to "gegebenenfalls",
+                "inkl." to "inklusive"
+            )
+            "fr" -> listOf("M." to "Monsieur", "Mme" to "Madame", "Dr." to "Docteur")
+            "it" -> listOf("Sig." to "Signore", "Dott." to "Dottore", "ecc." to "eccetera")
+            "es" -> listOf(
+                "Sr." to "Señor", "Sra." to "Señora", "Dr." to "Doctor", "etc." to "etcétera"
+            )
+            "ru" -> listOf("др." to "доктор", "т.д." to "так далее", "т.п." to "тому подобное")
+            else -> emptyList()
+        }
+        return byLang + common
+    }
+
+    /** Expand abbreviations and fix dates so the splitter/TTS doesn't break mid‑expression. */
+    private fun normalizeForSpeech(text: String, lang: String): String {
+        var t = text
+        for ((abbr, full) in expansionsFor(lang)) {
+            t = Regex(
+                "(?<![\\p{L}])" + Regex.escape(abbr), RegexOption.IGNORE_CASE
+            ).replace(t, full)
+        }
+        // Initials like "J. K. Rowling" -> "J K Rowling" (avoid sentence splits).
+        t = Regex("(?<![\\p{L}])([A-Z])\\.(?=\\s)").replace(t) { it.groupValues[1] }
+        return normalizeDates(t, lang)
+    }
+
+    private fun normalizeDates(t: String, lang: String): String {
+        val months = monthsByLang[lang] ?: return t
+        val alt = months.joinToString("|") { Regex.escape(it) }
+        val re = Regex("\\b(\\d{1,2})\\.\\s*($alt)\\b", RegexOption.IGNORE_CASE)
+        return re.replace(t) { m ->
+            val day = m.groupValues[1].toIntOrNull()
+            val month = m.groupValues[2]
+            if (day == null || day !in 1..31) {
+                m.value
+            } else when (lang) {
+                "en" -> "${ordinalEn(day)} of $month"
+                "de" -> germanOrdinals[day]?.let { "$it $month" } ?: m.value
+                else -> "${m.groupValues[1]} $month"
+            }
+        }
+    }
+
+    private fun ordinalEn(n: Int): String {
+        val suffix = when {
+            n % 100 in 11..13 -> "th"
+            n % 10 == 1 -> "st"
+            n % 10 == 2 -> "nd"
+            n % 10 == 3 -> "rd"
+            else -> "th"
+        }
+        return "$n$suffix"
     }
 
     private fun detectLanguage(text: String): String {
