@@ -84,5 +84,6 @@
     <string name="pref_reset_category">Ripristina</string>
     <string name="reset_defaults">Ripristina valori</string>
     <string name="reset_defaults_summary">Ripristina i valori predefiniti dei cursori</string>
-    <string name="pref_value_default">%1%2 (predefinito %3%2)</string>
+    <string name="pref_default">Predefinito: %1$d%2$s</string>
+    <string name="pref_category_speech">Voce</string>
 </resources>

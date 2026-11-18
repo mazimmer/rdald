@@ -1,0 +1,3 @@
+0.8.4
+- Fixed garbled default-value text in Settings; summaries now show only the default value.
+- Reordered Settings so Voices/Bluetooth/Appearance come first and the sliders are grouped.

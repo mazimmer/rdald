@@ -84,5 +84,6 @@
     <string name="pref_reset_category">Сброс</string>
     <string name="reset_defaults">Сбросить значения</string>
     <string name="reset_defaults_summary">Вернуть значения ползунков по умолчанию</string>
-    <string name="pref_value_default">%1%2 (по умолчанию %3%2)</string>
+    <string name="pref_default">По умолчанию: %1$d%2$s</string>
+    <string name="pref_category_speech">Речь</string>
 </resources>

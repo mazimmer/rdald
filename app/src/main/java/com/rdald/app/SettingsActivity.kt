@@ -97,7 +97,7 @@ class SettingsActivity : AppCompatActivity() {
             for ((key, def, suffix) in items) {
                 val pref = findPreference<SeekBarPreference>(key) ?: continue
                 pref.value = def
-                pref.summary = getString(R.string.pref_value_default, def, suffix, def)
+                pref.summary = getString(R.string.pref_default, def, suffix)
             }
             scheduleApplySettings()
         }
@@ -111,12 +111,10 @@ class SettingsActivity : AppCompatActivity() {
             val key = pref?.key ?: return
             val currentValue = prefs?.getInt(key, defaultValue) ?: defaultValue
             pref?.let {
-                // Set initial summary, showing the default value as a marker.
-                it.summary = getString(R.string.pref_value_default, currentValue, suffix, defaultValue)
-                // Update live (SeekBarPreferences use updatesContinuously=true).
-                it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
-                    val progress = (newValue as Int)
-                    it.summary = getString(R.string.pref_value_default, progress, suffix, defaultValue)
+                // Summary shows only the default (the live value is displayed by the slider).
+                it.summary = getString(R.string.pref_default, defaultValue, suffix)
+                it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, _ ->
+                    it.summary = getString(R.string.pref_default, defaultValue, suffix)
                     onChanged?.invoke()
                     true
                 }

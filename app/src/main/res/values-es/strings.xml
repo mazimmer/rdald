@@ -84,5 +84,6 @@
     <string name="pref_reset_category">Restablecer</string>
     <string name="reset_defaults">Restablecer valores</string>
     <string name="reset_defaults_summary">Restaurar los valores predeterminados de los controles</string>
-    <string name="pref_value_default">%1%2 (predeterminado %3%2)</string>
+    <string name="pref_default">Predeterminado: %1$d%2$s</string>
+    <string name="pref_category_speech">Voz</string>
 </resources>

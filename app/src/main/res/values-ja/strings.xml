@@ -84,5 +84,6 @@
     <string name="pref_reset_category">リセット</string>
     <string name="reset_defaults">値をリセット</string>
     <string name="reset_defaults_summary">すべてのスライダーを既定値に戻す</string>
-    <string name="pref_value_default">%1%2（既定 %3%2）</string>
+    <string name="pref_default">既定: %1$d%2$s</string>
+    <string name="pref_category_speech">音声</string>
 </resources>

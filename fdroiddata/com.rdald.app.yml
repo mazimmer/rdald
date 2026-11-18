@@ -25,16 +25,16 @@ RepoType: git
 Repo: https://github.com/USER/REPO.git
 
 Builds:
-  - versionName: 0.8.3
-    versionCode: 138
-    commit: v0.8.3
+  - versionName: 0.8.4
+    versionCode: 139
+    commit: v0.8.4
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.8.3
-CurrentVersionCode: 138
+CurrentVersion: 0.8.4
+CurrentVersionCode: 139
 
 MaintainerNotes: |
   Unsigned release build; F-Droid signs. Voices/engines are provided by the system.
