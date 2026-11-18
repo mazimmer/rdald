@@ -150,16 +150,16 @@ class DownloadService : Service() {
                 else -> other++
             }
         }
-        // Pure punctuation/symbols, or tokens that are mostly symbols.
+        // Keep numbers (e.g. "100'000", "2024"); only drop pure symbol runs.
         if (letters == 0 && digits == 0) return true
-        if (other > letters + digits) return true
-        // Long number-only tokens (ids, counters).
-        if (letters == 0 && digits >= 6) return true
-        // Long mixed letter+digit blobs (tracking ids, base64-ish).
+        // Tokens that are mostly symbols (separator junk / icon soup).
+        if (digits == 0 && other > letters) return true
+        // Long mixed letter+digit blobs (tracking ids, base64-ish) — but not plain numbers.
         if (t.length >= 20 && letters > 0 && digits > 0 && letters.toDouble() / t.length < 0.7) {
             return true
         }
-        // Long ASCII-only "words" with almost no vowels (hash/keyboard mash); other scripts safe.
+        // Long ASCII-only "words" with almost no vowels (garbled consonants / hashes). Numbers and
+        // other scripts (Cyrillic/CJK/…) are unaffected.
         if (t.length >= 12 && t.all { it in 'a'..'z' || it in 'A'..'Z' }) {
             val vowels = t.count { it.lowercaseChar() in "aeiouy" }
             if (vowels.toDouble() / t.length < 0.15) return true
@@ -169,9 +169,10 @@ class DownloadService : Service() {
 
     private fun isMostlySymbols(line: String): Boolean {
         if (line.length < 8) return false
-        var letters = 0
-        for (c in line) if (c.isLetter()) letters++
-        return letters.toDouble() / line.length < 0.25
+        // Count letters AND digits: a line of numbers is content, not junk.
+        var alnum = 0
+        for (c in line) if (c.isLetterOrDigit()) alnum++
+        return alnum.toDouble() / line.length < 0.3
     }
 
     private fun normalizeText(s: String): String =

@@ -130,6 +130,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private var pendingNextItem: SavedText? = null
     private var nextStartRunnable: Runnable? = null
+    // Guards against finishing the same item twice (e.g. repeated slider-to-end / skips).
+    private var finishedItemId: String? = null
 
     private val audioManager: AudioManager? =
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -267,12 +269,13 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             pendingPlayTitle = null
             pendingPlayText = null
-            // Stop any previous item's audio/announcement so only the new title is heard first.
+            // Cancel any queued auto-advance and stop ALL previous audio so only this item plays.
+            nextStartRunnable?.let { mainHandler.removeCallbacks(it) }
+            nextStartRunnable = null
+            pendingNextItem = null
+            finishedItemId = null
             abortAnnouncements()
-            try {
-                mediaPlayer?.pause()
-            } catch (_: Exception) {
-            }
+            stopMediaPlayback()
             val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
@@ -872,6 +875,11 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private fun playFile(f: File) {
         try {
+            // Never let an announcement/title overlap a sentence.
+            try {
+                announcePlayer?.reset()
+            } catch (_: Exception) {
+            }
             if (mediaPlayer == null) mediaPlayer = MediaPlayer()
             val mp = mediaPlayer!!
             mp.reset()
@@ -934,6 +942,12 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private fun onItemFinished() {
         val id = currentItemId
+        // Only finish once per item and never keep multiple queued "next item" starts.
+        if (id != null && id == finishedItemId) return
+        finishedItemId = id
+        nextStartRunnable?.let { mainHandler.removeCallbacks(it) }
+        nextStartRunnable = null
+        pendingNextItem = null
         if (id != null) {
             try {
                 SavedTextDb.get(context).setProgress(id, 100)
@@ -997,6 +1011,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             onDone()
             return
         }
+        // Only one source of audio at a time: stop the current sentence before announcing.
+        stopMediaPlayback()
         if (useItemVoice) {
             applyItemVoice()
         } else {

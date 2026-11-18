@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.8.5)
+## Features (current, v0.8.7)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,11 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.7** — text cleanup keeps **numbers** (e.g. `100'000`); it still drops URLs, long symbol runs
+  and garbled consonant blobs.
+- **0.8.6** — fix overlapping audio on end-of-item/skip: announcements stop the sentence player,
+  sentences stop the announcement player, queued auto-advance runnables are cancelled, and an item
+  can only be finished once (`finishedItemId`).
 - **0.8.5** — Settings gets a **back arrow**; downloaded text is cleaned of **URLs, citation refs and
   junk tokens** (pure symbols, long ids/hashes, keyboard-mash words) and mostly-symbol paragraphs.
 - **0.8.4** — fixed a garbled default-value summary (bad format string); summary now shows only
