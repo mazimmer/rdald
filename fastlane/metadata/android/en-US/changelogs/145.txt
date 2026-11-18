@@ -1,0 +1,4 @@
+0.8.10
+- Mini player bar at the bottom while an item is loaded: play/pause, forward, rewind, and tap to
+  open the playing item.
+- The playing item is marked in the list with a speaker icon and a shaded card.

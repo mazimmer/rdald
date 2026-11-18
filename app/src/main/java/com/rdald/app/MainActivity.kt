@@ -2,6 +2,7 @@ package com.rdald.app
 
 import android.Manifest
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -18,12 +19,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.rdald.app.data.SavedTextDb
 import com.rdald.app.databinding.ActivityMainBinding
 import com.rdald.app.service.DownloadService
+import com.rdald.app.service.PlaybackService
+import com.rdald.app.service.TtsPlayer
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -31,6 +39,14 @@ class MainActivity : AppCompatActivity() {
     private var showArchive = false
     // When true, the next list load scrolls to the newest item at the bottom.
     private var scrollToBottomPending = true
+
+    private var controller: MediaController? = null
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+    private val playerListener = object : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            updateMiniPlayer()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +58,8 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupActionBar()
         setupFab()
+        setupMiniPlayer()
+        connectController()
         requestNotificationPermission()
         seedIfEmpty()
         handleIntent(intent)
@@ -78,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnArchive.visibility = if (showArchive) android.view.View.GONE else android.view.View.VISIBLE
         if (n > 0) binding.btnDelete.text = getString(R.string.delete_count, n)
         else binding.btnDelete.text = getString(R.string.delete)
+        updateMiniPlayer()
     }
 
     private fun archiveSelected() {
@@ -119,6 +138,7 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
         loadTexts()
+        updateMiniPlayer()
     }
 
     override fun onPause() {
@@ -131,6 +151,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadTexts() {
         val items = SavedTextDb.get(this).getAll(showArchive)
+        adapter.currentPlayingId = TtsPlayer.activeItemId
         adapter.submit(items)
         if (scrollToBottomPending && items.isNotEmpty()) {
             binding.recyclerView.scrollToPosition(items.size - 1)
@@ -171,6 +192,72 @@ class MainActivity : AppCompatActivity() {
         } else {
             getString(R.string.summary_items, items.size, fmt(totalSec), fmt(remainSec))
         }
+    }
+
+    // ---- Mini player ----
+    private fun setupMiniPlayer() {
+        binding.btnMiniPlayPause.setOnClickListener {
+            val c = controller ?: return@setOnClickListener
+            if (c.isPlaying) c.pause() else c.play()
+        }
+        binding.btnMiniForward.setOnClickListener { controller?.seekForward() }
+        binding.btnMiniRewind.setOnClickListener { controller?.seekBack() }
+        binding.miniPlayer.setOnClickListener { openPlayingItem() }
+    }
+
+    private fun connectController() {
+        val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        val future = MediaController.Builder(this, token).buildAsync()
+        controllerFuture = future
+        future.addListener({
+            try {
+                controller = future.get()
+                controller?.addListener(playerListener)
+                updateMiniPlayer()
+            } catch (_: Exception) {
+            }
+        }, MoreExecutors.directExecutor())
+    }
+
+    private fun openPlayingItem() {
+        val id = TtsPlayer.activeItemId ?: return
+        val st = SavedTextDb.get(this).getById(id) ?: return
+        val intent = Intent(this, ReaderActivity::class.java).apply {
+            putExtra("saved_text", st)
+        }
+        startActivity(intent)
+    }
+
+    private fun updateMiniPlayer() {
+        val id = TtsPlayer.activeItemId
+        val selecting = adapter.selectedCount > 0
+        val ended = controller?.playbackState == Player.STATE_ENDED
+        val show = id != null && !selecting && !ended
+        binding.miniPlayer.visibility =
+            if (show) android.view.View.VISIBLE else android.view.View.GONE
+        if (show && id != null) {
+            val st = SavedTextDb.get(this).getById(id)
+            binding.tvMiniTitle.text = st?.title ?: getString(R.string.app_name)
+            val playing = controller?.isPlaying == true
+            binding.btnMiniPlayPause.setImageResource(
+                if (playing) R.drawable.ic_media_pause else R.drawable.ic_media_play
+            )
+            binding.btnMiniPlayPause.contentDescription =
+                getString(if (playing) R.string.action_pause else R.string.action_play)
+        }
+        val newId = if (show) id else null
+        if (adapter.currentPlayingId != newId) {
+            adapter.currentPlayingId = newId
+            adapter.notifyDataSetChanged()
+        }
+    }
+
+    override fun onDestroy() {
+        controller?.removeListener(playerListener)
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controller = null
+        controllerFuture = null
+        super.onDestroy()
     }
 
     private fun startDownload(url: String) {

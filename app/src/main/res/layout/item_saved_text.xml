@@ -33,7 +33,7 @@
             android:textColor="@android:color/black"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/ivIcon"
-            app:layout_constraintEnd_toStartOf="@id/ivDrag" />
+            app:layout_constraintEnd_toStartOf="@id/ivPlaying" />
 
         <TextView
             android:id="@+id/tvPreview"
@@ -61,6 +61,16 @@
             app:layout_constraintStart_toEndOf="@id/ivIcon"
             app:layout_constraintEnd_toStartOf="@id/ivDrag"
             app:layout_constraintBottom_toBottomOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivPlaying"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_speaker"
+            android:contentDescription="@string/notification_playing"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ivDrag" />
 
         <ImageView
             android:id="@+id/ivDrag"

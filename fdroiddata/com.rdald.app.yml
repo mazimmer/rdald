@@ -25,16 +25,16 @@ RepoType: git
 Repo: https://github.com/USER/REPO.git
 
 Builds:
-  - versionName: 0.8.9
-    versionCode: 144
-    commit: v0.8.9
+  - versionName: 0.8.10
+    versionCode: 145
+    commit: v0.8.10
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.8.9
-CurrentVersionCode: 144
+CurrentVersion: 0.8.10
+CurrentVersionCode: 145
 
 MaintainerNotes: |
   Unsigned release build; F-Droid signs. Voices/engines are provided by the system.

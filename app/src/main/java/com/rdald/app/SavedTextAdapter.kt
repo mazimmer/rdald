@@ -63,8 +63,12 @@ class SavedTextAdapter : RecyclerView.Adapter<SavedTextAdapter.ViewHolder>() {
 
     companion object {
         private const val COLOR_SELECTED = 0xFFBBDEFB.toInt() // light blue highlight
+        private const val COLOR_PLAYING = 0xFFDDF1E0.toInt() // soft green for now-playing
         private const val COLOR_NORMAL = Color.WHITE
     }
+
+    /** id of the item currently playing (drives the speaker icon + shaded card). */
+    var currentPlayingId: String? = null
 
     private var items: MutableList<SavedText> = ArrayList()
     private var touchHelper: ItemTouchHelper? = null
@@ -175,7 +179,15 @@ class SavedTextAdapter : RecyclerView.Adapter<SavedTextAdapter.ViewHolder>() {
                 false
             }
             val selected = selectedIds.contains(item.id)
-            binding.root.setCardBackgroundColor(if (selected) COLOR_SELECTED else COLOR_NORMAL)
+            val playing = item.id == currentPlayingId
+            binding.ivPlaying.visibility = if (playing) View.VISIBLE else View.GONE
+            binding.root.setCardBackgroundColor(
+                when {
+                    selected -> COLOR_SELECTED
+                    playing -> COLOR_PLAYING
+                    else -> COLOR_NORMAL
+                }
+            )
             binding.root.setOnClickListener {
                 if (isSelectionMode) toggleSelection(item.id) else onItemClickListener?.invoke(item)
             }
