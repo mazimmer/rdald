@@ -1,0 +1,2 @@
+0.8.2
+- Changing the speech rate or pitch now re-renders the current sentence immediately.

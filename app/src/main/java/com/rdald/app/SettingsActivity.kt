@@ -77,6 +77,29 @@ class SettingsActivity : AppCompatActivity() {
                 startActivity(Intent(requireContext(), VoicesActivity::class.java))
                 true
             }
+
+            findPreference<Preference>("reset_defaults")?.setOnPreferenceClickListener {
+                resetDefaults()
+                true
+            }
+        }
+
+        private fun resetDefaults() {
+            val seconds = getString(R.string.unit_seconds_suffix)
+            val minutes = getString(R.string.unit_min_suffix)
+            val items = listOf(
+                Triple("speech_rate", 100, "%"),
+                Triple("speech_pitch", 100, "%"),
+                Triple("announce_threshold_min", 5, minutes),
+                Triple("forward_interval", 30, seconds),
+                Triple("rewind_interval", 10, seconds)
+            )
+            for ((key, def, suffix) in items) {
+                val pref = findPreference<SeekBarPreference>(key) ?: continue
+                pref.value = def
+                pref.summary = getString(R.string.pref_value_default, def, suffix, def)
+            }
+            scheduleApplySettings()
         }
 
         private fun updateSeekBarSummary(
@@ -88,12 +111,12 @@ class SettingsActivity : AppCompatActivity() {
             val key = pref?.key ?: return
             val currentValue = prefs?.getInt(key, defaultValue) ?: defaultValue
             pref?.let {
-                // Set initial summary
-                it.summary = "${currentValue}$suffix"
-                // Update on change
+                // Set initial summary, showing the default value as a marker.
+                it.summary = getString(R.string.pref_value_default, currentValue, suffix, defaultValue)
+                // Update live (SeekBarPreferences use updatesContinuously=true).
                 it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                     val progress = (newValue as Int)
-                    it.summary = "${progress}$suffix"
+                    it.summary = getString(R.string.pref_value_default, progress, suffix, defaultValue)
                     onChanged?.invoke()
                     true
                 }

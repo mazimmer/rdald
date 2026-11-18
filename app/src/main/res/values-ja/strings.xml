@@ -81,4 +81,8 @@
     <string name="announce_no_more">受信トレイにこれ以上項目はありません。</string>
     <string name="meta_progress">%1$s · %2$d%% · ~%3$d 分（残り ~%4$d 分）</string>
     <string name="meta_simple">%1$s · ~%2$d 分</string>
+    <string name="pref_reset_category">リセット</string>
+    <string name="reset_defaults">値をリセット</string>
+    <string name="reset_defaults_summary">すべてのスライダーを既定値に戻す</string>
+    <string name="pref_value_default">%1%2（既定 %3%2）</string>
 </resources>

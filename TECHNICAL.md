@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.8.2)
+## Features (current, v0.8.3)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,8 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.3** — Settings sliders use `updatesContinuously` (live value + summary), summaries show the
+  **default value**, and a **Reset values** button restores all slider defaults.
 - **0.8.2** — changing **speech rate/pitch** now drops and re-renders the current sentence with the
   new values (Settings notifies the service; debounced 500 ms so dragging doesn’t thrash).
 - **0.8.1** — fix: Bluetooth “forward/rewind skips articles” now works — handled in

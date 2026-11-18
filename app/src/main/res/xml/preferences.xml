@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory android:title="@string/pref_category_playback">
         <Preference
             android:key="voices"
@@ -8,24 +9,27 @@
         <SeekBarPreference
             android:key="speech_rate"
             android:title="@string/pref_speech_rate"
-            android:summary="@string/pref_speech_rate_summary"
-            android:min="50"
+            android:defaultValue="100"
             android:max="200"
-            android:defaultValue="100" />
+            app:min="50"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
         <SeekBarPreference
             android:key="speech_pitch"
             android:title="@string/pref_speech_pitch"
-            android:summary="@string/pref_speech_pitch_summary"
-            android:min="50"
+            android:defaultValue="100"
             android:max="200"
-            android:defaultValue="100" />
+            app:min="50"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
         <SeekBarPreference
             android:key="announce_threshold_min"
             android:title="@string/pref_announce_threshold"
-            android:summary="@string/pref_announce_threshold_summary"
-            android:min="0"
+            android:defaultValue="5"
             android:max="60"
-            android:defaultValue="5" />
+            app:min="0"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_bt_category">
         <SwitchPreferenceCompat
@@ -45,16 +49,24 @@
         <SeekBarPreference
             android:key="forward_interval"
             android:title="@string/pref_forward_interval"
-            android:summary="@string/pref_forward_interval_summary"
-            android:min="5"
+            android:defaultValue="30"
             android:max="60"
-            android:defaultValue="30" />
+            app:min="5"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
         <SeekBarPreference
             android:key="rewind_interval"
             android:title="@string/pref_rewind_interval"
-            android:summary="@string/pref_rewind_interval_summary"
-            android:min="5"
+            android:defaultValue="10"
             android:max="60"
-            android:defaultValue="10" />
+            app:min="5"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_reset_category">
+        <Preference
+            android:key="reset_defaults"
+            android:title="@string/reset_defaults"
+            android:summary="@string/reset_defaults_summary" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -81,4 +81,8 @@
     <string name="announce_no_more">No hay más elementos en la bandeja de entrada.</string>
     <string name="meta_progress">%1$s · %2$d%% · ~%3$d min (~%4$d min restantes)</string>
     <string name="meta_simple">%1$s · ~%2$d min</string>
+    <string name="pref_reset_category">Restablecer</string>
+    <string name="reset_defaults">Restablecer valores</string>
+    <string name="reset_defaults_summary">Restaurar los valores predeterminados de los controles</string>
+    <string name="pref_value_default">%1%2 (predeterminado %3%2)</string>
 </resources>

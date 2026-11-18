@@ -81,4 +81,8 @@
     <string name="announce_no_more">Во входящих больше нет элементов.</string>
     <string name="meta_progress">%1$s · %2$d%% · ~%3$d мин (~%4$d мин осталось)</string>
     <string name="meta_simple">%1$s · ~%2$d мин</string>
+    <string name="pref_reset_category">Сброс</string>
+    <string name="reset_defaults">Сбросить значения</string>
+    <string name="reset_defaults_summary">Вернуть значения ползунков по умолчанию</string>
+    <string name="pref_value_default">%1%2 (по умолчанию %3%2)</string>
 </resources>

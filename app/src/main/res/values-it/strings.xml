@@ -81,4 +81,8 @@
     <string name="announce_no_more">Nessun altro elemento nella posta in arrivo.</string>
     <string name="meta_progress">%1$s · %2$d%% · ~%3$d min (~%4$d min rimanenti)</string>
     <string name="meta_simple">%1$s · ~%2$d min</string>
+    <string name="pref_reset_category">Ripristina</string>
+    <string name="reset_defaults">Ripristina valori</string>
+    <string name="reset_defaults_summary">Ripristina i valori predefiniti dei cursori</string>
+    <string name="pref_value_default">%1%2 (predefinito %3%2)</string>
 </resources>

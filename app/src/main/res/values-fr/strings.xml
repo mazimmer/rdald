@@ -81,4 +81,8 @@
     <string name="announce_no_more">Plus aucun élément dans la boîte de réception.</string>
     <string name="meta_progress">%1$s · %2$d%% · ~%3$d min (~%4$d min restantes)</string>
     <string name="meta_simple">%1$s · ~%2$d min</string>
+    <string name="pref_reset_category">Réinitialiser</string>
+    <string name="reset_defaults">Réinitialiser les valeurs</string>
+    <string name="reset_defaults_summary">Rétablir les valeurs par défaut des curseurs</string>
+    <string name="pref_value_default">%1%2 (par défaut %3%2)</string>
 </resources>
