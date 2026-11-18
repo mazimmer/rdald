@@ -2,6 +2,7 @@ package com.rdald.app.service
 import com.rdald.app.R
 import com.rdald.app.TextSegmentation
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -1056,6 +1057,10 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             try {
                 SavedTextDb.get(context).setProgress(id, 100)
                 SavedTextDb.get(context).setArchived(listOf(id), true)
+                // Tell the UI immediately so the finished card can animate away.
+                context.sendBroadcast(
+                    Intent(PlaybackService.ACTION_LIBRARY_CHANGED).setPackage(context.packageName)
+                )
             } catch (e: Exception) {
                 Log.w(TAG, "finish persist failed: ${e.message}")
             }

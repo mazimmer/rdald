@@ -26,6 +26,8 @@ class PlaybackService : MediaLibraryService() {
         const val EXTRA_MEDIA_KEYCODE = "com.rdald.app.extra.MEDIA_KEYCODE"
         const val ACTION_LOAD_TEXT = "com.rdald.app.action.LOAD_TEXT"
         const val ACTION_APPLY_SETTINGS = "com.rdald.app.action.APPLY_SETTINGS"
+        // Playback changed the library (e.g. an item finished and was archived).
+        const val ACTION_LIBRARY_CHANGED = "com.rdald.app.action.LIBRARY_CHANGED"
         const val EXTRA_TEXT = "com.rdald.app.extra.TEXT"
         const val EXTRA_TITLE = "com.rdald.app.extra.TITLE"
         const val EXTRA_ID = "com.rdald.app.extra.ID"

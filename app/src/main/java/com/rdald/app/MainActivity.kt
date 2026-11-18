@@ -117,6 +117,14 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.deleted, Toast.LENGTH_SHORT).show()
     }
 
+    private val libraryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            // An item finished and was archived (or another library change from playback).
+            loadTexts()
+            updateMiniPlayer()
+        }
+    }
+
     private val refreshReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             loadTexts()
@@ -137,6 +145,11 @@ class MainActivity : AppCompatActivity() {
             IntentFilter(DownloadService.ACTION_TEXTS_CHANGED),
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
+        ContextCompat.registerReceiver(
+            this, libraryReceiver,
+            IntentFilter(PlaybackService.ACTION_LIBRARY_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         loadTexts()
         updateMiniPlayer()
     }
@@ -145,6 +158,10 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         try {
             unregisterReceiver(refreshReceiver)
+        } catch (_: Exception) {
+        }
+        try {
+            unregisterReceiver(libraryReceiver)
         } catch (_: Exception) {
         }
     }
@@ -322,6 +339,12 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
+        // Animate item removals (e.g. a finished card leaving the inbox).
+        binding.recyclerView.itemAnimator =
+            androidx.recyclerview.widget.DefaultItemAnimator().apply {
+                removeDuration = 250
+                moveDuration = 250
+            }
 
         // Drag-to-reorder using the handle (long-press is reserved for multi-select).
         val dragCallback = object : ItemTouchHelper.SimpleCallback(
