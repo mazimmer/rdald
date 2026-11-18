@@ -228,10 +228,25 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
     }
 
     fun setTtsSettings(rate: Float, pitch: Float) {
+        val changed = rate != speechRate || pitch != speechPitch
         speechRate = rate
         speechPitch = pitch
-        tts?.setSpeechRate(rate)
-        tts?.setPitch(pitch)
+        if (!changed) {
+            tts?.setSpeechRate(rate)
+            tts?.setPitch(pitch)
+            return
+        }
+        mainHandler.post {
+            tts?.setSpeechRate(speechRate)
+            tts?.setPitch(speechPitch)
+            if (sentences.isEmpty()) return@post
+            // Drop the current sentence and re-render it from its start with the new rate/pitch.
+            stopMediaPlayback()
+            requestedSynth.clear()
+            applyVoiceForSentence(index)
+            invalidateState()
+            if (playWhenReady) speakAt(index)
+        }
     }
 
     fun playText(
