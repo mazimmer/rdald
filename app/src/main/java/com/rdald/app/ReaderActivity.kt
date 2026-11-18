@@ -182,15 +182,15 @@ class ReaderActivity : AppCompatActivity() {
         lastHighlightedPara = -1
         lastHighlightedSentence = -1
 
-        val paras = content.split(Regex("\\n\\s*\\n|\\n")).map { it.trim() }
-            .filter { it.isNotBlank() }.ifEmpty { listOf(content.trim()) }
+        // Use the same segmentation as the player so paragraph/sentence indices stay in sync.
+        val paras = TextSegmentation.paragraphs(content).ifEmpty { listOf(content.trim()) }
 
         val starts = ArrayList<Int>()
         val sentPara = ArrayList<Int>()
         var sentCount = 0
         paras.forEachIndexed { p, para ->
             starts.add(sentCount)
-            val sents = para.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            val sents = TextSegmentation.sentences(para)
             paraSentences.add(sents)
             paraTexts.add(para)
             repeat(sents.size) { sentPara.add(p) }

@@ -1,5 +1,6 @@
 package com.rdald.app.service
 import com.rdald.app.R
+import com.rdald.app.TextSegmentation
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -63,6 +64,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     private var title: String = "NaraTTS"
     private var sentences: List<String> = emptyList()
+    // Normalized text used only for synthesis (same count/indices as [sentences]).
+    private var speakTexts: List<String> = emptyList()
     // Paragraph structure (for per-paragraph navigation): start sentence index of each
     // paragraph, and the paragraph index that each sentence belongs to.
     private var paragraphStarts: List<Int> = emptyList()
@@ -280,14 +283,14 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             speechRate = prefs.getInt("speech_rate", 100) / 100f
             speechPitch = prefs.getInt("speech_pitch", 100) / 100f
             title = newTitle.ifBlank { "NaraTTS" }
-            // Detect language first so we can normalize abbreviations/dates before sentence splitting.
+            // Detect language first (display text is segmented unchanged; only speech is normalized).
             val langTag = detectLanguage(text)
             itemLangBase = Locale.forLanguageTag(langTag).language.ifBlank { "en" }
-            val normalizedText = normalizeForSpeech(text, itemLangBase)
-            val parts = buildParagraphs(normalizedText)
+            val parts = buildParagraphs(text)
             sentences = parts.first
             paragraphStarts = parts.second
             paragraphOf = parts.third
+            speakTexts = sentences.map { normalizeForSpeech(it, itemLangBase) }
             currentItemId = itemId.ifBlank { null }
             activeItemId = currentItemId
             // Feed the article favicon to the media notification (shown as the large icon).
@@ -301,7 +304,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             }
             currentStartPercent = startPercent.coerceIn(0, 100)
             requestedSynth.clear()
-            currentTotalSeconds = estimateSeconds(wordCount(normalizedText))
+            currentTotalSeconds = estimateSeconds(wordCount(text))
             playlist = buildPlaylist()
             playbackState = if (sentences.isEmpty()) Player.STATE_IDLE else Player.STATE_READY
             playWhenReady = true
@@ -385,28 +388,17 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
 
     /** Split into paragraphs -> sentences, keeping paragraph boundaries for navigation. */
     private fun buildParagraphs(text: String): Triple<List<String>, List<Int>, IntArray> {
-        val paragraphs = text.split(Regex("\\n\\s*\\n|\\n")).map { it.trim() }.filter { it.isNotBlank() }
+        // Shared segmentation with the reader view, so paragraph/sentence indices always match.
+        val paragraphs = TextSegmentation.paragraphs(text)
         val outSentences = ArrayList<String>()
         val starts = ArrayList<Int>()
         val paraOf = ArrayList<Int>()
-        val seenParas = HashSet<String>()
         var pIndex = 0
         for (para in paragraphs) {
-            val paraKey = normalizeText(para)
-            // Skip exact duplicate paragraphs (whitespace/case-insensitive).
-            if (paraKey.isEmpty() || !seenParas.add(paraKey)) continue
-            val sents = para.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotBlank() }
+            val sents = TextSegmentation.sentences(para)
             if (sents.isEmpty()) continue
-            val kept = ArrayList<String>()
-            val seenSents = HashSet<String>()
-            for (s in sents) {
-                val key = normalizeText(s)
-                if (key.isEmpty() || !seenSents.add(key)) continue
-                kept.add(s)
-            }
-            if (kept.isEmpty()) continue
             starts.add(outSentences.size)
-            for (s in kept) {
+            for (s in sents) {
                 outSentences.add(s)
                 paraOf.add(pIndex)
             }
@@ -906,7 +898,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         playbackState = Player.STATE_READY
         persistProgress()
         applyVoiceForSentence(index)
-        val sentence = sentences[index]
+        val sentence = speakTexts.getOrElse(index) { sentences.getOrElse(index) { "" } }
         Log.i(TAG, "speakAt index=$index pwr=$playWhenReady ttsReady=$ttsReady")
         val f = fileFor(sentence)
         if (f.exists() && f.length() > 0) {
@@ -945,7 +937,8 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
         val cacheVoice = "${engKey}|${picked?.voice?.name ?: itemVoiceName}"
         val savedVoice = currentVoiceName
         currentVoiceName = cacheVoice
-        val f = fileFor(sentences[i])
+        val speak = speakTexts.getOrElse(i) { sentences.getOrElse(i) { "" } }
+        val f = fileFor(speak)
         currentVoiceName = savedVoice
         if (f.exists() && f.length() > 0) return
         requestedSynth.add(i)
@@ -957,7 +950,7 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             val params = Bundle().apply {
                 putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uid)
             }
-            inst.synthesizeToFile(sentences[i], params, f, uid)
+            inst.synthesizeToFile(speak, params, f, uid)
         } catch (_: Exception) {
             requestedSynth.remove(i)
         }
@@ -977,7 +970,9 @@ class TtsPlayer(private val context: Context) : SimpleBasePlayer(Looper.getMainL
             if (id != synthId) return@post
             if (!playWhenReady) return@post
             if (sentences.isEmpty()) return@post
-            val f = fileFor(sentences[index.coerceIn(0, sentences.size - 1)])
+            val idx = index.coerceIn(0, sentences.size - 1)
+            val speak = speakTexts.getOrElse(idx) { sentences[idx] }
+            val f = fileFor(speak)
             if (f.exists() && f.length() > 0) playFile(f) else onSentenceComplete()
         }
     }

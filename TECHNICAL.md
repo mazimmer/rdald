@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.8.8)
+## Features (current, v0.8.9)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,8 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.9** — fix reader/player desync by sharing `TextSegmentation` (same sentence indices); speech
+  normalization now happens **per sentence** (display text/indices unchanged).
 - **0.8.8** — **speech normalization** before sentence splitting: expands common abbreviations
   (Mr./Dr./z.B./usw./…), converts dates (`10. August` → “10th of August” / “zehnter August”),
   removes the period from initials, fixing false sentence breaks and pronunciation.

@@ -1,0 +1,4 @@
+0.8.9
+- Fix reader/player desync: reader and player now use the same sentence segmentation, so the
+  highlight and paragraph taps line up. Speech normalization is applied per sentence without
+  changing the displayed text or indices.
