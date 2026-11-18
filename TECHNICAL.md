@@ -23,7 +23,7 @@ Copyright (C) 2026 NaraTTS contributors.
 
 The project shares ideas and architectural approaches with AntennaPod (also GPL-3.0-only).
 
-## Features (current, v0.8.10)
+## Features (current, v0.8.11)
 
 **Intake**
 - Receive text/links via **share** (ACTION_SEND text/plain). Sharing is **background-only**:
@@ -279,6 +279,7 @@ per-release process.
   “All languages” toggle and **tri-state** checkboxes at every level, plus a spoken **sample**
   when toggling a voice.
 - **0.7.2** — added TTS-engine awareness (voices are per-engine).
+- **0.8.11** — mini player control icons tinted dark for visibility on the light card.
 - **0.8.10** — **mini player bar** on the main screen (play/pause, forward, rewind, tap to open the
   item); the list marks the current item with a **speaker icon + shaded card**. Controller connects
   from MainActivity; hides during multi-select/after end.

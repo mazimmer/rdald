@@ -97,6 +97,7 @@
                 android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_media_rewind"
+                android:tint="#FF1A1A1A"
                 android:contentDescription="@string/action_rewind" />
 
             <ImageButton
@@ -105,6 +106,7 @@
                 android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_media_play"
+                android:tint="#FF1A1A1A"
                 android:contentDescription="@string/action_play" />
 
             <ImageButton
@@ -113,6 +115,7 @@
                 android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_media_fast_forward"
+                android:tint="#FF1A1A1A"
                 android:contentDescription="@string/action_forward" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
