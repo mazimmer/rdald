@@ -1,0 +1,3 @@
+0.8.5
+- Added a back arrow to Settings.
+- Downloaded articles are cleaned: URLs and junk/garbage tokens are removed.

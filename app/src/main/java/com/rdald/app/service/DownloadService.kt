@@ -113,10 +113,65 @@ class DownloadService : Service() {
         if (text.isEmpty()) {
             text = Jsoup.parse(html).body()?.text()?.trim().orEmpty()
         }
-        // Extraction sometimes repeats blocks (nested elements etc.); strip duplicates before
-        // storing so the reader doesn't get repeated paragraphs/sentences.
+        // Remove URLs and junk tokens, then strip duplicate blocks/sentences before storing.
+        text = cleanExtractedText(text)
         text = dedupeText(text)
         return ArticleResult(title, text, baseUrl, html)
+    }
+
+    private val urlRegex = Regex("(?i)\\b(?:https?://|www\\.)\\S+")
+
+    /**
+     * Remove URLs, bracketed citations and "garbage" tokens (pure symbols, long ids/hashes, and
+     * keyboard-mash words), and drop paragraphs that are mostly symbols.
+     */
+    private fun cleanExtractedText(raw: String): String {
+        val out = ArrayList<String>()
+        for (para in raw.split(Regex("\\n\\s*\\n"))) {
+            var p = urlRegex.replace(para, " ")
+            // Citation-style references like [1] / [12].
+            p = p.replace(Regex("\\[\\s*\\d{1,3}\\s*]"), " ")
+            val kept = p.split(Regex("\\s+")).filter { it.isNotBlank() && !isJunkToken(it) }
+            val line = kept.joinToString(" ").replace(Regex("\\s+"), " ").trim()
+            if (line.isBlank() || isMostlySymbols(line)) continue
+            out.add(line)
+        }
+        return out.joinToString("\n\n")
+    }
+
+    private fun isJunkToken(t: String): Boolean {
+        var letters = 0
+        var digits = 0
+        var other = 0
+        for (c in t) {
+            when {
+                c.isLetter() -> letters++
+                c.isDigit() -> digits++
+                else -> other++
+            }
+        }
+        // Pure punctuation/symbols, or tokens that are mostly symbols.
+        if (letters == 0 && digits == 0) return true
+        if (other > letters + digits) return true
+        // Long number-only tokens (ids, counters).
+        if (letters == 0 && digits >= 6) return true
+        // Long mixed letter+digit blobs (tracking ids, base64-ish).
+        if (t.length >= 20 && letters > 0 && digits > 0 && letters.toDouble() / t.length < 0.7) {
+            return true
+        }
+        // Long ASCII-only "words" with almost no vowels (hash/keyboard mash); other scripts safe.
+        if (t.length >= 12 && t.all { it in 'a'..'z' || it in 'A'..'Z' }) {
+            val vowels = t.count { it.lowercaseChar() in "aeiouy" }
+            if (vowels.toDouble() / t.length < 0.15) return true
+        }
+        return false
+    }
+
+    private fun isMostlySymbols(line: String): Boolean {
+        if (line.length < 8) return false
+        var letters = 0
+        for (c in line) if (c.isLetter()) letters++
+        return letters.toDouble() / line.length < 0.25
     }
 
     private fun normalizeText(s: String): String =
